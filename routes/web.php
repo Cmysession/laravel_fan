@@ -13,6 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [\App\Http\Controllers\Web\IndexController::class,'index']);
+Route::get('/{list}', [\App\Http\Controllers\Web\IndexController::class,'list']);
+Route::get('/{list}/{row}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
