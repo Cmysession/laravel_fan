@@ -9,6 +9,8 @@ class IndexController extends Controller
 
     public $template = 'm_1';
 
+    public $title_str = "{标题}";
+
 
     public function __construct()
     {
@@ -47,20 +49,21 @@ class IndexController extends Controller
 
     public function exchange(string $html): string
     {
-
-        $title_str = "{标题}";
         // 出现了几次
-        $title_str_count = substr_count($html, $title_str);
+        $title_str_count = substr_count($html, $this->title_str);
         $title_file = @file_get_contents(storage_path("template/$this->template/key/t.txt"));
-        if (!$title_file){
-            die("<h2 style='text-align: center'> t.txt</h2>");
+        if (!$title_file) {
+            die("<h2 style='text-align: center'> t.txt </h2>");
         }
-        dump($title_file);
-        // 替换
+        $title_array = explode("\n", $title_file);
+        $title_array_count = count($title_array);
+        if (!$title_array_count) {
+            die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
+        }
+        // 有几个替换几个
         for ($i = 0; $i < $title_str_count; $i++) {
-            $html = preg_replace("/$title_str/", '34', $html, 1);
+            $html = preg_replace("/{$this->title_str}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
-//        var_dump($html);
         return $html;
     }
 
