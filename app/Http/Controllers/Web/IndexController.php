@@ -52,6 +52,8 @@ class IndexController extends Controller
 
     public $prefix_title = '';
 
+    public $cache_path = 'cache';
+
     /**
      * 种类|类别
      * @var string[]
@@ -81,14 +83,23 @@ class IndexController extends Controller
 
     public function __construct()
     {
+        $this->template = 'm_1';
+
+        $this->cache_path = "app/public/template/$this->template/" . $this->cache_path . $_SERVER['REQUEST_URI'];
+        if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
+            $this->cache_path .= '.html';
+        }
+        $html = @file_get_contents(storage_path($this->cache_path));
+        // 缓存存在直接输出
+        if ($html) {
+            die($html);
+        }
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
             if (!empty($this->prefix_array[$prefix_title])) {
                 $this->prefix_title = $this->prefix_array[$prefix_title];
             }
         }
-        // 获取域名
-        $this->template = 'm_1';
 
     }
 
@@ -98,6 +109,7 @@ class IndexController extends Controller
      */
     public function index(): void
     {
+        // 缓存查询
         $index_html = @file_get_contents(storage_path("app/public/template/$this->template/index.html"));
         if (!$index_html) {
             die("<h2 style='text-align: center'> index.html </h2>");
@@ -111,7 +123,6 @@ class IndexController extends Controller
      */
     public function list(): void
     {
-
         $index_html = @file_get_contents(storage_path("app/public/template/$this->template/list.html"));
         if (!$index_html) {
             die("<h2 style='text-align: center'> list.html </h2>");
@@ -125,6 +136,7 @@ class IndexController extends Controller
      */
     public function row(): void
     {
+
         $index_html = @file_get_contents(storage_path("app/public/template/$this->template/row.html"));
         if (!$index_html) {
             die("<h2 style='text-align: center'> row.html </h2>");
@@ -305,11 +317,10 @@ class IndexController extends Controller
         }
         // 有几个替换几个
         for ($i = 0; $i < $content_str_count; $i++) {
-            $html = preg_replace("/{随机句子}/",$content_array[rand(0, $content_array_count - 1)], $html, 1);
+            $html = preg_replace("/{随机句子}/", $content_array[rand(0, $content_array_count - 1)], $html, 1);
         }
         return $html;
     }
-
 
 
 }
