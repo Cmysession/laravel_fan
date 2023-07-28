@@ -209,7 +209,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $_SERVER['SERVER_NAME'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
+            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
         }
         return $html;
     }
@@ -229,7 +229,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $_SERVER['SERVER_NAME'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
         }
         return $html;
     }
