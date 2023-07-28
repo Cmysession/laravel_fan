@@ -74,6 +74,9 @@ class IndexController extends Controller
      * "{固定图片}"
      * "{随机列表链接}"
      * "{随机详情链接}"
+     * "{随机网名}"
+     * "{随机数字}"
+     * "{随机时间}"
      */
 
     public function __construct()
