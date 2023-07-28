@@ -140,6 +140,7 @@ class IndexController extends Controller
         $html = $this->exchange_number($html);
         $html = $this->exchange_date($html);
         $html = $this->exchange_nickname($html);
+        $html = $this->exchange_content($html);
         return $this->exchange_img($html);
     }
 
@@ -283,6 +284,32 @@ class IndexController extends Controller
         }
         return $html;
     }
+
+    /**
+     * 随机句子
+     * @param string $html
+     * @return string
+     */
+    public function exchange_content(string $html): string
+    {
+        // 出现了几次
+        $content_str_count = substr_count($html, '{随机句子}');
+        $content_file = @file_get_contents(storage_path("app/public/template/$this->template/key/c.txt"));
+        if (!$content_file) {
+            die("<h2 style='text-align: center'> c.txt </h2>");
+        }
+        $content_array = explode("\n", trim($content_file));
+        $content_array_count = count($content_array);
+        if (!$content_array_count) {
+            die("<h2 style='text-align: center'> c.txt 没数据 </h2>");
+        }
+        // 有几个替换几个
+        for ($i = 0; $i < $content_str_count; $i++) {
+            $html = preg_replace("/{随机句子}/",$content_array[rand(0, $content_array_count - 1)], $html, 1);
+        }
+        return $html;
+    }
+
 
 
 }
