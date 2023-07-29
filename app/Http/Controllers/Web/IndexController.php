@@ -55,10 +55,10 @@ class IndexController extends Controller
     public function __construct()
     {
         $web_config = config('web');
-        if (empty($web_config[$_SERVER['SERVER_NAME']])) {
+        if (empty($web_config[$_SERVER['HTTP_HOST']])) {
             die("<h2 style='text-align: center'> 网站未配置 </h2>");
         }
-        $this->model = $web_config[$_SERVER['SERVER_NAME']];
+        $this->model = $web_config[$_SERVER['HTTP_HOST']];
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
@@ -273,7 +273,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $_SERVER['SERVER_NAME'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
+            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
         }
         return $html;
     }
@@ -293,7 +293,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $_SERVER['SERVER_NAME'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
         }
         return $html;
     }
