@@ -35,6 +35,8 @@ class IndexController extends Controller
 
     public $cache_path = 'cache';
 
+    public $model = null;
+
     /**
      * yzy345.com
      * "{固定关键词}"
@@ -46,6 +48,7 @@ class IndexController extends Controller
      * "{随机网名}"
      * "{随机数字}"
      * "{随机时间}"
+     * "{随机小数点}"
      * @throws FileNotFoundException
      */
 
@@ -55,18 +58,20 @@ class IndexController extends Controller
         if (empty($web_config[$_SERVER['SERVER_NAME']])) {
             die("<h2 style='text-align: center'> 网站未配置 </h2>");
         }
-        $model = $web_config[$_SERVER['SERVER_NAME']];
+        $this->model = $web_config[$_SERVER['SERVER_NAME']];
         // 模板
-        $this->template = $model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
-        $this->prefix_status = $model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
+        $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
+        $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
-        $html = $this->get_file_html($this->cache_path);
-        // 缓存存在直接输出
-        if ($html) {
-            die($html);
+        if ($this->model['cache_path']) {
+            $html = $this->get_file_html($this->cache_path);
+            // 缓存存在直接输出
+            if ($html) {
+                die($html);
+            }
         }
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
@@ -88,7 +93,9 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> index.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        $this->put_file_html($this->cache_path, $index_html);
+        if ($this->model['cache_path']) {
+            $this->put_file_html($this->cache_path, $index_html);
+        }
         die($index_html);
 
     }
@@ -104,7 +111,9 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> list.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        $this->put_file_html($this->cache_path, $index_html);
+        if ($this->model['cache_path']) {
+            $this->put_file_html($this->cache_path, $index_html);
+        }
         die($index_html);
     }
 
@@ -120,7 +129,9 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> row.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        $this->put_file_html($this->cache_path, $index_html);
+        if ($this->model['cache_path']) {
+            $this->put_file_html($this->cache_path, $index_html);
+        }
         die($index_html);
     }
 
@@ -135,7 +146,9 @@ class IndexController extends Controller
         $html = $this->exchange_date($html);
         $html = $this->exchange_nickname($html);
         $html = $this->exchange_content($html);
-        return $this->exchange_img($html);
+        $html = $this->exchange_number_n($html);
+        $html = $this->exchange_img($html);
+        return $html;
     }
 
     /**
@@ -147,22 +160,25 @@ class IndexController extends Controller
     {
         // 出现了几次
         $title_str_count = substr_count($html, '{随机标题}');
+        $title_str_count_t = substr_count($html, '{标题}');
         $title_file = @file_get_contents(storage_path("app/public/template/$this->template/key/t.txt"));
         if (!$title_file) {
             die("<h2 style='text-align: center'> t.txt </h2>");
         }
-        $title_array = explode("\n", trim($title_file));
+        $title_array = explode("\n", trim(str_replace("\r",'',$title_file)));
         $title_array_count = count($title_array);
         if (!$title_array_count) {
             die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
         }
         $title_fixed = $title_array[rand(0, $title_array_count - 1)];
         // 替换首页title
-        $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
-        $html = preg_replace("/{标题}/", $body_title, $html, 1);
         // 替换关键词
         $html = str_replace("{固定标题}", $title_fixed, $html);
         // 有几个替换几个
+        for ($i = 0; $i < $title_str_count_t; $i++) {
+            $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
+            $html = preg_replace("/{标题}/", $body_title, $html, 1);
+        }
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机标题}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
@@ -182,15 +198,12 @@ class IndexController extends Controller
         if (!$title_file) {
             die("<h2 style='text-align: center'> t.txt </h2>");
         }
-        $title_array = explode("\n", trim($title_file));
+        $title_array = explode("\n", trim(str_replace("\r",'',$title_file)));
         $title_array_count = count($title_array);
         if (!$title_array_count) {
             die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
         }
         $title_fixed = $title_array[rand(0, $title_array_count - 1)];
-        // 替换首页title
-//        $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
-//        $html = preg_replace("/{随机关键词}/", $body_title, $html, 1);
         // 替换关键词
         $html = str_replace("{固定关键词}", $title_fixed, $html);
         // 有几个替换几个
@@ -213,7 +226,7 @@ class IndexController extends Controller
         if (!$description_file) {
             die("<h2 style='text-align: center'> d.txt </h2>");
         }
-        $description_array = explode("\n", trim($description_file));
+        $description_array = explode("\n", trim(str_replace("\r",'',$description_file)));
         $description_array_count = count($description_array);
         if (!$description_array_count) {
             die("<h2 style='text-align: center'> d.txt 没数据 </h2>");
@@ -240,7 +253,7 @@ class IndexController extends Controller
         $img_str_count = substr_count($html, '{随机图片}');
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
-            $html = preg_replace("/{随机图片}/", '/storage' . explode('/public', $img_array[rand(0, $img_str_count - 1)])[1], $html, 1);
+            $html = preg_replace("/{随机图片}/", '/storage' . explode('/public', $img_array[rand(0, count($img_array) - 1)])[1], $html, 1);
         }
         return $html;
     }
@@ -300,6 +313,20 @@ class IndexController extends Controller
     }
 
     /**
+     * 随机小数点
+     * @param string $html
+     * @return string
+     */
+    public function exchange_number_n(string $html): string
+    {
+        $number_count = substr_count($html, '{随机小数点}');
+        for ($i = 0; $i < $number_count; $i++) {
+            $html = preg_replace("/{随机小数点}/", rand(0, 999).'.'.rand(0, 99), $html, 1);
+        }
+        return $html;
+    }
+
+    /**
      * 替换时间
      * @param string $html
      * @return string
@@ -348,7 +375,7 @@ class IndexController extends Controller
         if (!$content_file) {
             die("<h2 style='text-align: center'> c.txt </h2>");
         }
-        $content_array = explode("\n", trim($content_file));
+        $content_array = explode("\n", trim(str_replace("\r",'',$content_file)));
         $content_array_count = count($content_array);
         if (!$content_array_count) {
             die("<h2 style='text-align: center'> c.txt 没数据 </h2>");
