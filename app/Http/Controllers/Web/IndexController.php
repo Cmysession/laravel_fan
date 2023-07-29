@@ -31,6 +31,8 @@ class IndexController extends Controller
      */
     public $prefix_status = 0;
 
+    public $prefix_path_status = 0;
+
     public $prefix_title = '';
 
     public $cache_path = 'cache';
@@ -60,7 +62,7 @@ class IndexController extends Controller
         $this->host = $_SERVER['HTTP_HOST'];
         // 大于等于2
         if (2 <= substr_count($this->host, '.')) {
-            $this->host = substr($this->host, strpos($this->host, ".")+1);
+            $this->host = substr($this->host, strpos($this->host, ".") + 1);
         }
         if (empty($web_config[$this->host])) {
             die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
@@ -69,6 +71,7 @@ class IndexController extends Controller
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
+        $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
         $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $this->host)) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
@@ -147,7 +150,6 @@ class IndexController extends Controller
     {
         $html = $this->exchange_title_all($html);
         $html = $this->exchange_key_all($html);
-
         $html = $this->exchange_list_link($html);
         $html = $this->exchange_row_link($html);
         $html = $this->exchange_number($html);
@@ -187,7 +189,7 @@ class IndexController extends Controller
             $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
             $html = preg_replace("/{标题}/", $body_title, $html, 1);
         }
-        $html = $this->exchange_description_all($title_fixed,$html);
+        $html = $this->exchange_description_all($title_fixed, $html);
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机标题}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
@@ -227,7 +229,7 @@ class IndexController extends Controller
      * @param string $html
      * @return string
      */
-    public function exchange_description_all(string $title,string $html): string
+    public function exchange_description_all(string $title, string $html): string
     {
         // 出现了几次
         $description_str_count = substr_count($html, '{随机描述}');
@@ -242,7 +244,7 @@ class IndexController extends Controller
         }
         // 有几个替换几个
         for ($i = 0; $i < $description_str_count; $i++) {
-            $html = preg_replace("/{随机描述}/", $title.$description_array[rand(0, $description_array_count - 1)], $html, 1);
+            $html = preg_replace("/{随机描述}/", $title . $description_array[rand(0, $description_array_count - 1)], $html, 1);
         }
         return $html;
     }
@@ -275,14 +277,19 @@ class IndexController extends Controller
     public function exchange_list_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机列表链接}');
+        $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
             $prefix_str = '';
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = array_rand($this->prefix_array);
+                $prefix_str = array_rand($this->prefix_array) . '.';
             }
-            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $this->host . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
+            // 泛目录
+            if ($this->prefix_path_status) {
+                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html';
+            }
+            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . $this->host . $prefix_path, $html, 1);
         }
         return $html;
     }
@@ -295,14 +302,20 @@ class IndexController extends Controller
     public function exchange_row_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机详情链接}');
+        $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
             $prefix_str = '';
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = array_rand($this->prefix_array);
+                $prefix_str = array_rand($this->prefix_array) . '.';
             }
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $this->host . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
+            // 泛目录
+            if ($this->prefix_path_status) {
+                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+            }
+
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $this->host . $prefix_path, $html, 1);
         }
         return $html;
     }
