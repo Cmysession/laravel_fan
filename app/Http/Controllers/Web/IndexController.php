@@ -86,16 +86,15 @@ class IndexController extends Controller
     {
         // 模板
         $this->template = 'm_1';
-//        dump($_SERVER);die;
         $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", $_SERVER['SERVER_NAME']) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
         $html = $this->get_file_html($this->cache_path);
         // 缓存存在直接输出
-//        if ($html) {
-//            die($html);
-//        }
+        if ($html) {
+            die($html);
+        }
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
             if (!empty($this->prefix_array[$prefix_title])) {
