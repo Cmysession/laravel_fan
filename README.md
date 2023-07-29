@@ -1,2 +1,6 @@
 #### 生成KEY php artisan key:generate
-#### 生成软链接 public/storage（软连接） → storage/app/public | php artisan storage:link
+## 生成软链 php artisan storage:link |  ln -sr storage/app/public public/storage
+# NG
+location / {
+try_files $uri $uri/ /index.php?$query_string;
+}
