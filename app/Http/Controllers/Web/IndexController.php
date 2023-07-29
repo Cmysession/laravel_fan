@@ -37,6 +37,8 @@ class IndexController extends Controller
 
     public $model = null;
 
+    public $host = '';
+
     /**
      * yzy345.com
      * "{固定关键词}"
@@ -55,14 +57,19 @@ class IndexController extends Controller
     public function __construct()
     {
         $web_config = config('web');
-        if (empty($web_config[$_SERVER['HTTP_HOST']])) {
-            die("<h2 style='text-align: center'> 网站未配置 </h2>");
+        $this->host = $_SERVER['HTTP_HOST'];
+        // 大于等于2
+        if (2 <= substr_count($this->host, '.')) {
+            $this->host = substr($this->host, strpos($this->host, ".")+1);
         }
-        $this->model = $web_config[$_SERVER['HTTP_HOST']];
+        if (empty($web_config[$this->host])) {
+            die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
+        }
+        $this->model = $web_config[$this->host];
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
-        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])) . '/' . $_SERVER['REQUEST_URI'];
+        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $this->host)) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
@@ -73,6 +80,7 @@ class IndexController extends Controller
                 die($html);
             }
         }
+        // 标题
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
             if (!empty($this->prefix_array[$prefix_title])) {
@@ -165,7 +173,7 @@ class IndexController extends Controller
         if (!$title_file) {
             die("<h2 style='text-align: center'> t.txt </h2>");
         }
-        $title_array = explode("\n", trim(str_replace("\r",'',$title_file)));
+        $title_array = explode("\n", trim(str_replace("\r", '', $title_file)));
         $title_array_count = count($title_array);
         if (!$title_array_count) {
             die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
@@ -198,7 +206,7 @@ class IndexController extends Controller
         if (!$title_file) {
             die("<h2 style='text-align: center'> t.txt </h2>");
         }
-        $title_array = explode("\n", trim(str_replace("\r",'',$title_file)));
+        $title_array = explode("\n", trim(str_replace("\r", '', $title_file)));
         $title_array_count = count($title_array);
         if (!$title_array_count) {
             die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
@@ -226,7 +234,7 @@ class IndexController extends Controller
         if (!$description_file) {
             die("<h2 style='text-align: center'> d.txt </h2>");
         }
-        $description_array = explode("\n", trim(str_replace("\r",'',$description_file)));
+        $description_array = explode("\n", trim(str_replace("\r", '', $description_file)));
         $description_array_count = count($description_array);
         if (!$description_array_count) {
             die("<h2 style='text-align: center'> d.txt 没数据 </h2>");
@@ -273,7 +281,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
+            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . '.' . $this->host . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html', $html, 1);
         }
         return $html;
     }
@@ -293,7 +301,7 @@ class IndexController extends Controller
             if ($this->prefix_status) {
                 $prefix_str = array_rand($this->prefix_array);
             }
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $_SERVER['HTTP_HOST'] . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . '.' . $this->host . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html', $html, 1);
         }
         return $html;
     }
@@ -321,7 +329,7 @@ class IndexController extends Controller
     {
         $number_count = substr_count($html, '{随机小数点}');
         for ($i = 0; $i < $number_count; $i++) {
-            $html = preg_replace("/{随机小数点}/", rand(0, 999).'.'.rand(0, 99), $html, 1);
+            $html = preg_replace("/{随机小数点}/", rand(0, 999) . '.' . rand(0, 99), $html, 1);
         }
         return $html;
     }
@@ -375,7 +383,7 @@ class IndexController extends Controller
         if (!$content_file) {
             die("<h2 style='text-align: center'> c.txt </h2>");
         }
-        $content_array = explode("\n", trim(str_replace("\r",'',$content_file)));
+        $content_array = explode("\n", trim(str_replace("\r", '', $content_file)));
         $content_array_count = count($content_array);
         if (!$content_array_count) {
             die("<h2 style='text-align: center'> c.txt 没数据 </h2>");
