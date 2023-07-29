@@ -51,6 +51,7 @@ class IndexController extends Controller
 
     public function __construct()
     {
+        dump($_SERVER);
         $web_config = config('web');
         if (empty($web_config[$_SERVER['SERVER_NAME']])) {
             die("<h2 style='text-align: center'> 网站未配置 </h2>");
@@ -59,7 +60,7 @@ class IndexController extends Controller
         // 模板
         $this->template = $model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
         $this->prefix_status = $model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
-        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", $_SERVER['HTTP_HOST']) . '/' . $_SERVER['REQUEST_URI'];
+        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
