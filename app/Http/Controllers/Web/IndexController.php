@@ -51,7 +51,6 @@ class IndexController extends Controller
 
     public function __construct()
     {
-        dump($_SERVER);
         $web_config = config('web');
         if (empty($web_config[$_SERVER['SERVER_NAME']])) {
             die("<h2 style='text-align: center'> 网站未配置 </h2>");
