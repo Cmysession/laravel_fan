@@ -187,7 +187,7 @@ class IndexController extends Controller
             $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
             $html = preg_replace("/{标题}/", $body_title, $html, 1);
         }
-        $html = $this->exchange_description_all($title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司',$html);
+        $html = $this->exchange_description_all($title_fixed,$html);
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机标题}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
