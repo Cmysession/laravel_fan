@@ -147,7 +147,7 @@ class IndexController extends Controller
     {
         $html = $this->exchange_title_all($html);
         $html = $this->exchange_key_all($html);
-        $html = $this->exchange_description_all($html);
+
         $html = $this->exchange_list_link($html);
         $html = $this->exchange_row_link($html);
         $html = $this->exchange_number($html);
@@ -187,6 +187,7 @@ class IndexController extends Controller
             $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
             $html = preg_replace("/{标题}/", $body_title, $html, 1);
         }
+        $html = $this->exchange_description_all($title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司',$html);
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机标题}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
@@ -226,7 +227,7 @@ class IndexController extends Controller
      * @param string $html
      * @return string
      */
-    public function exchange_description_all(string $html): string
+    public function exchange_description_all(string $title,string $html): string
     {
         // 出现了几次
         $description_str_count = substr_count($html, '{随机描述}');
@@ -241,7 +242,7 @@ class IndexController extends Controller
         }
         // 有几个替换几个
         for ($i = 0; $i < $description_str_count; $i++) {
-            $html = preg_replace("/{随机描述}/", $description_array[rand(0, $description_array_count - 1)], $html, 1);
+            $html = preg_replace("/{随机描述}/", $title.$description_array[rand(0, $description_array_count - 1)], $html, 1);
         }
         return $html;
     }
