@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Monolog\Handler\RotatingFileHandler;
 
 class IndexController extends Controller
 {
@@ -41,8 +44,10 @@ class IndexController extends Controller
 
     public $host = '';
 
+    public $bot_spider = false;
+
+
     /**
-     * yzy345.com
      * "{固定关键词}"
      * "{随机关键词}"
      * "{随机图片}"
@@ -56,7 +61,7 @@ class IndexController extends Controller
      * @throws FileNotFoundException
      */
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $web_config = config('web');
         $this->host = $_SERVER['HTTP_HOST'];
@@ -83,6 +88,9 @@ class IndexController extends Controller
                 die($html);
             }
         }
+
+        $this->spider($request->userAgent(), $request->url(), $request->ip());
+
         // 标题
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
@@ -104,9 +112,12 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> index.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        if ($this->model['cache_path']) {
-            $this->put_file_html($this->cache_path, $index_html);
+        if ($this->bot_spider) {
+            if ($this->model['cache_path']) {
+                $this->put_file_html($this->cache_path, $index_html);
+            }
         }
+
         die($index_html);
 
     }
@@ -122,8 +133,10 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> list.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        if ($this->model['cache_path']) {
-            $this->put_file_html($this->cache_path, $index_html);
+        if ($this->bot_spider) {
+            if ($this->model['cache_path']) {
+                $this->put_file_html($this->cache_path, $index_html);
+            }
         }
         die($index_html);
     }
@@ -140,8 +153,10 @@ class IndexController extends Controller
             die("<h2 style='text-align: center'> row.html </h2>");
         }
         $index_html = $this->exchange($index_html);
-        if ($this->model['cache_path']) {
-            $this->put_file_html($this->cache_path, $index_html);
+        if ($this->bot_spider) {
+            if ($this->model['cache_path']) {
+                $this->put_file_html($this->cache_path, $index_html);
+            }
         }
         die($index_html);
     }
@@ -425,5 +440,36 @@ class IndexController extends Controller
         return false;
     }
 
+    public function spider(string $useragent, $url, $ip)
+    {
+        if (stripos($useragent, 'googlebot') !== false) {
+            $bot = 'Google Spider';
+        } elseif (stripos($useragent, 'baiduspider') !== false) {
+            $bot = 'Baidu Spider';
+        } elseif (stripos($useragent, 'sogou spider') !== false) {
+            $bot = 'Sogou Spider';
+        } elseif (stripos($useragent, 'sosospider') !== false) {
+            $bot = 'SOSO Spider';
+        } elseif (stripos($useragent, '360spider') !== false) {
+            $bot = '360 Spider';
+        } elseif (stripos($useragent, 'yahoo') !== false) {
+            $bot = 'Yahoo Spider';
+        } elseif (stripos($useragent, 'msn') !== false) {
+            $bot = 'MSN Spider';
+        } elseif (stripos($useragent, 'sohu') !== false) {
+            $bot = 'Sohu Spider';
+        } elseif (stripos($useragent, 'yodaoBot') !== false) {
+            $bot = 'Yodao Spider';
+        } else {
+            $bot = 'NO Spider';
+        }
+        (new \Monolog\Logger('local'))
+            ->pushHandler(new RotatingFileHandler(storage_path("logs/$this->host/spider.log")))
+            ->info("$url|$this->host|$bot|$ip|$useragent");
+        // 蜘蛛模式
+        if ($bot !== 'NO Spider') {
+            $this->bot_spider = true;
+        }
+    }
 
 }
