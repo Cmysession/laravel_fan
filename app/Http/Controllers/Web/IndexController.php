@@ -65,18 +65,21 @@ class IndexController extends Controller
     {
         $web_config = config('web');
         $this->host = $_SERVER['HTTP_HOST'];
+        $web_keys = array_keys($web_config);
+        $host = '';
+        for ($i = 0; $i < count($web_keys); $i++) {
+            if (!strpos($this->host, $web_keys[$i])) {
+                die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
+            }
+            $host = $web_keys[$i];
+            break;
+        }
+        $this->host = $host;
+        $this->model = $web_config[$this->host];
         $indexModel = new IndexModel();
         $this->prefix_array = $indexModel->prefix_array;
         $this->request_url_array = $indexModel->request_url_array;
         $this->nickname = $indexModel->nickname;
-        // 大于等于2
-        if (2 <= substr_count($this->host, '.')) {
-            $this->host = substr($this->host, strpos($this->host, ".") + 1);
-        }
-        if (empty($web_config[$this->host])) {
-            die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
-        }
-        $this->model = $web_config[$this->host];
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
@@ -301,6 +304,23 @@ class IndexController extends Controller
     }
 
     /**
+     * 随机泛域名
+     * @param string $html
+     * @return string
+     */
+    public function exchange_link(string $html): string
+    {
+        $link_count = substr_count($html, '{随机泛域名}');
+
+        // 有几个替换几个
+        for ($i = 0; $i < $link_count; $i++) {
+            $prefix_str = array_rand($this->prefix_array) . '.';
+            $html = preg_replace("/{随机泛域名}/", '//' . $prefix_str . $this->host, $html, 1);
+        }
+        return $html;
+    }
+
+    /**
      * 随机详情链接
      * @param string $html
      * @return string
@@ -468,10 +488,9 @@ class IndexController extends Controller
      * 百度推送
      * @return void
      */
-    public function bai_du_zhan_zhang(): void
+    public function is_jump(array $model): bool
     {
-        $web_model = config('web');
-        dump($web_model);
+
     }
 
 }
