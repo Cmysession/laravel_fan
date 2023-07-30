@@ -181,6 +181,7 @@ class IndexController extends Controller
         $html = $this->exchange_content($html);
         $html = $this->exchange_number_n($html);
         $html = $this->exchange_img($html);
+        $html = $this->exchange_link($html);
         return $html;
     }
 
