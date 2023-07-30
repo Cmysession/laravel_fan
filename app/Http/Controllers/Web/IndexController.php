@@ -68,11 +68,13 @@ class IndexController extends Controller
         $web_keys = array_keys($web_config);
         $host = '';
         for ($i = 0; $i < count($web_keys); $i++) {
-            if (!strpos($this->host, $web_keys[$i])) {
-                die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
+            if (strpos($this->host, $web_keys[$i])) {
+                $host = $web_keys[$i];
+                break;
             }
-            $host = $web_keys[$i];
-            break;
+        }
+        if ($host === '') {
+            die("<h2 style='text-align: center'> 网站未配置 01 </h2>");
         }
         $this->host = $host;
         $this->model = $web_config[$this->host];
