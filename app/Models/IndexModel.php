@@ -15,7 +15,7 @@ class IndexModel extends Authenticatable
      * 泛域名前缀
      * @var string[]
      */
-    public $prefix_array = ["shanghai" => "上海", "yunnan" => "云南", "inner_mongolia" => "内蒙古", "beijing" => "北京", "taiwan" => "台湾", "jilin" => "吉林", "sichuan" => "四川", "tianjin" => "天津", "ningxia" => "宁夏", "anhui" => "安徽", "shandong" => "山东", "shanxi" => "山西", "guangdong" => "广东", "guangxi" => "广西", "xinjiang" => "新疆", "jiangsu" => "江苏", "jiangxi" => "江西", "hebei" => "河北", "henan" => "河南", "zhejiang" => "浙江", "hainan" => "海南", "hubei" => "湖北", "hunan" => "湖南", "macao" => "澳门", "gansu" => "甘肃", "fujian" => "福建", "tibet" => "西藏", "guizhou" => "贵州", "liaoning" => "辽宁", "chongqing" => "重庆", "shaanxi" => "陕西", "qinhai" => "青海", "hong_kong" => "香港", "heilongjiang" => "黑龙江"];
+    public $prefix_array = ["shanghai" => "上海", "yunnan" => "云南", "innermongolia" => "内蒙古", "beijing" => "北京", "taiwan" => "台湾", "jilin" => "吉林", "sichuan" => "四川", "tianjin" => "天津", "ningxia" => "宁夏", "anhui" => "安徽", "shandong" => "山东", "shanxi" => "山西", "guangdong" => "广东", "guangxi" => "广西", "xinjiang" => "新疆", "jiangsu" => "江苏", "jiangxi" => "江西", "hebei" => "河北", "henan" => "河南", "zhejiang" => "浙江", "hainan" => "海南", "hubei" => "湖北", "hunan" => "湖南", "macao" => "澳门", "gansu" => "甘肃", "fujian" => "福建", "tibet" => "西藏", "guizhou" => "贵州", "liaoning" => "辽宁", "chongqing" => "重庆", "shaanxi" => "陕西", "qinhai" => "青海", "hongkong" => "香港", "heilongjiang" => "黑龙江"];
 
     /**
      * 种类|类别
