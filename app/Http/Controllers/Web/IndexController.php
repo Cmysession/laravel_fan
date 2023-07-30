@@ -68,7 +68,7 @@ class IndexController extends Controller
         $web_keys = array_keys($web_config);
         $host = '';
         for ($i = 0; $i < count($web_keys); $i++) {
-            if (strpos($this->host, $web_keys[$i])) {
+            if (strpos($this->host, $web_keys[$i]) !== false) {
                 $host = $web_keys[$i];
                 break;
             }
