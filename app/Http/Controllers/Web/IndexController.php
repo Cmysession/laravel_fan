@@ -163,7 +163,6 @@ class IndexController extends Controller
 
     public function exchange(string $html): string
     {
-        $html = $this->exchange_title_all($html);
         $html = $this->exchange_key_all($html);
         $html = $this->exchange_list_link($html);
         $html = $this->exchange_row_link($html);
@@ -181,7 +180,7 @@ class IndexController extends Controller
      * @param string $html
      * @return string
      */
-    public function exchange_title_all(string $html): string
+    public function exchange_title_all(string $title_fixed,string $html): string
     {
         // 出现了几次
         $title_str_count = substr_count($html, '{随机标题}');
@@ -195,16 +194,12 @@ class IndexController extends Controller
         if (!$title_array_count) {
             die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
         }
-        $title_fixed = $title_array[rand(0, $title_array_count - 1)];
         // 替换首页title
-        // 替换关键词
-        $html = str_replace("{固定标题}", $title_fixed, $html);
         // 有几个替换几个
         for ($i = 0; $i < $title_str_count_t; $i++) {
             $body_title = $title_fixed . '(中国' . ($this->prefix_title === '' ? '' : '·' . $this->prefix_title) . ')有限公司';
             $html = preg_replace("/{标题}/", $body_title, $html, 1);
         }
-        $html = $this->exchange_description_all($title_fixed, $html);
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机标题}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
@@ -232,11 +227,13 @@ class IndexController extends Controller
         $title_fixed = $title_array[rand(0, $title_array_count - 1)];
         // 替换关键词
         $html = str_replace("{固定关键词}", $title_fixed, $html);
+        $html = $this->exchange_title_all($title_fixed,$html);
+        $html = $this->exchange_description_all($title_fixed, $html);
         // 有几个替换几个
         for ($i = 0; $i < $title_str_count; $i++) {
             $html = preg_replace("/{随机关键词}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
         }
-        return $html;
+        return str_replace("{固定关键词}", $title_fixed, $html);
     }
 
     /**
