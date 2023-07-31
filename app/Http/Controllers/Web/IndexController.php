@@ -457,24 +457,33 @@ class IndexController extends Controller
     public function spider(string $useragent, $url, $ip)
     {
         if (stripos($useragent, 'googlebot') !== false) {
-            $bot = 'Google Spider';
+            $bot = '谷歌';
             $this->bot_spider = false;
-        } elseif (stripos($useragent, 'baiduspider') !== false) {
-            $bot = 'Baidu Spider';
-        } elseif (stripos($useragent, 'sogou spider') !== false) {
-            $bot = 'Sogou Spider';
+        } elseif (stripos($useragent, 'Baiduspider') !== false) {
+            $bot = '百度';
+        } elseif (stripos($useragent, 'Sogou web spider') !== false) {
+            $bot = '搜狗 web';
+        } elseif (stripos($useragent, 'Sogou inst spider') !== false) {
+            $bot = '搜狗 inst';
         } elseif (stripos($useragent, 'sosospider') !== false) {
-            $bot = 'SOSO Spider';
-        } elseif (stripos($useragent, '360spider') !== false) {
-            $bot = '360 Spider';
-        } elseif (stripos($useragent, 'yahoo') !== false) {
-            $bot = 'Yahoo Spider';
+            $bot = 'SOSO';
+        } elseif (stripos($useragent, '360Spider') !== false) {
+            $bot = '360';
+        } elseif (stripos($useragent, 'Yahoo') !== false) {
+            $bot = '雅虎';
         } elseif (stripos($useragent, 'msn') !== false) {
-            $bot = 'MSN Spider';
+            $bot = 'MSN';
         } elseif (stripos($useragent, 'sohu') !== false) {
-            $bot = 'Sohu Spider';
-        } elseif (stripos($useragent, 'yodaoBot') !== false) {
-            $bot = 'Yodao Spider';
+            $bot = '搜狐';
+        } elseif (stripos($useragent, 'YoudaoBot') !== false) {
+            $bot = '有道';
+        } elseif (stripos($useragent, 'YisouSpider') !== false) {
+            $bot = '一搜';
+        }  elseif (stripos($useragent, 'YandexBot') !== false) {
+            $bot = 'Yandex';
+            $this->bot_spider = false;
+        }  elseif (stripos($useragent, 'spider') !== false) {
+            $bot = 'spider';
         } else {
             $bot = 'NO Spider';
         }
