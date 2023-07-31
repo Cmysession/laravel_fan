@@ -9,11 +9,11 @@ return [
         // 百度推送相关
         'baidu_status' => 0, //是否推送 1开,0关
         'baidu_number' => 10, //每日推送条数
-        'baidu_site' => 'www.yzy345.com', // 推送域名 www
         'baidu_token' => 'token', //推送 token
         // 跳转相关
         'is_jump' => 0, // 1跳,0关
-        '跳转状态' => 200, // 200, 302, 404
-        '跳转地址' => '', // 完整地址 http | https
+        'jump_hard_status' => 401, // 200, 403, 404
+        'jump_url_pc' => 'https://agg.robinmalgoire.com', // pc 完整地址 http | https
+        'jump_url_m' => 'https://hh.elmtreemarketing.com', // 手机 完整地址 http | https
     ],
 ];
