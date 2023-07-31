@@ -13,5 +13,5 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::post('/get_all_host',[\App\Http\Controllers\Web\EchartsController::class,'get_all_host']);
-Route::post('/get_charts_data',[\App\Http\Controllers\Web\EchartsController::class,'get_charts_data']);
+Route::get('/get_all_host', [\App\Http\Controllers\Web\EchartsController::class, 'get_all_host']);
+Route::get('/get_charts_data', [\App\Http\Controllers\Web\EchartsController::class, 'get_charts_data']);

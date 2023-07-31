@@ -40,6 +40,67 @@ class EchartsController extends Controller
     {
         ini_set('date.timezone', 'Asia/Shanghai');
         set_time_limit(0);
+        $host_date_log_array = [
+            'selected_array' => ['百度', "360", '神马', '搜狗'],
+            'selected' => ['百度' => true, "360" => true, '神马' => true, '搜狗' => true],
+            "xAxis_data" => [],
+            'series' => [
+                [
+                    'name' => '百度',
+                    'type' => 'line',
+//                    'stack' => 'Total'
+                ],
+                [
+                    'name' => "360",
+                    'type' => 'line',
+//                    'stack' => 'Total'
+                ],
+                [
+                    'name' => '神马',
+                    'type' => 'line',
+//                    'stack' => 'Total'
+                ],
+                [
+                    'name' => '搜狗',
+                    'type' => 'line',
+//                    'stack' => 'Total'
+                ]
+            ],
+        ];
+        //Baiduspider  百度
+        //360Spider  360
+        //YisouSpider 神马
+        //Sogou inst spider | Sogou web spider | Sogou spider
+        $day = 90;
+        $date = date('Y-m-d', strtotime("-$day day"));;
+        // 查询30天内的数据
+        for ($i = 0; $i < $day + 1; $i++) {
+            $date_name = "spider-{$date}.log";
+            $file_path = storage_path("logs/{$request->post('host')}/$date_name");
+            $host_date_log_array['xAxis_data'][] = $date; // 日期
+            if (file_exists($file_path)) {
+                $file_get_contents = file_get_contents($file_path);
+                $host_date_log_array['series'][0]['data'][] = substr_count($file_get_contents, 'Baiduspider');
+                $host_date_log_array['series'][1]['data'][] = substr_count($file_get_contents, '360Spider');
+                $host_date_log_array['series'][2]['data'][] = substr_count($file_get_contents, 'YisouSpider');
+                $host_date_log_array['series'][3]['data'][] = substr_count($file_get_contents, 'Sogou inst spider')
+                    + substr_count($file_get_contents, 'Sogou web spider')
+                    + substr_count($file_get_contents, 'Sogou spider');
+            } else {
+                $host_date_log_array['series'][0]['data'][] = 0;
+                $host_date_log_array['series'][1]['data'][] = 0;
+                $host_date_log_array['series'][2]['data'][] = 0;
+                $host_date_log_array['series'][3]['data'][] = 0;
+            }
+            $date = date('Y-m-d', strtotime("+1 day", strtotime($date)));
+        }
+        return json_encode($host_date_log_array);
+    }
+
+    public function get_table_data(Request $request)
+    {
+        ini_set('date.timezone', 'Asia/Shanghai');
+        set_time_limit(0);
         $host_date_array = [];
         $handler = opendir(storage_path('logs/' . $request->post('host')));
         while (($filename = readdir($handler)) !== false) {
@@ -81,10 +142,5 @@ class EchartsController extends Controller
             fclose($file);
         }
         dump($host_date_log_array);
-    }
-
-    public function get_table_data(Request $request)
-    {
-        
     }
 }
