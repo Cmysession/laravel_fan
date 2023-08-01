@@ -19,22 +19,27 @@
             width: 200px;
         }
 
-        #table-box {
+        #table-box, #container-box {
             background: #ebeeed;
             margin: 10px;
         }
 
-        #table-box .form-control {
+        #table-box .form-control, #container-box .form-control {
             width: 200px;
         }
 
-        #container-box {
-            background: #ebeeed;
+        #table-box .btn {
             margin: 10px;
         }
 
-        #container-box .form-control {
-            width: 200px;
+
+        #go_top {
+            height: 70px;
+            width: 70px;
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            border-radius: 100px;
         }
     </style>
 </head>
@@ -65,16 +70,7 @@
 
 {{--表格搜索--}}
 <div id="table-box">
-    <div class="input-group">
-        <span class="input-group-addon" id="basic-addon1">蜘蛛选择</span>
-        <select class="form-control">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-        </select>
-    </div>
+    <div class="logs-box"></div>
     <table class="table table-hover">
         <tr style="background: #dddddd">
             <th>日期</th>
@@ -82,68 +78,21 @@
             <th>来源</th>
             <th>设备</th>
             <th>IP</th>
+            <tbody id="logs-box-td">
+            <td>日期</td>
+            <td>网站</td>
+            <td>来源</td>
+            <td>设备</td>
+            <td>IP</td>
+            </tbody>
         </tr>
-        <tr>
-            <td>2023-1-1</td>
-            <td>www.baidu.com</td>
-            <td>百度</td>
-            <td>PC</td>
-            <td>127.0.0.1</td>
-        </tr>
-        <tr>
-            <td>2023-1-1</td>
-            <td>www.baidu.com</td>
-            <td>百度</td>
-            <td>PC</td>
-            <td>127.0.0.1</td>
-        </tr>
-        <tr>
-            <td>2023-1-1</td>
-            <td>www.baidu.com</td>
-            <td>百度</td>
-            <td>PC</td>
-            <td>127.0.0.1</td>
-        </tr>
-        <tr>
-            <td>2023-1-1</td>
-            <td>www.baidu.com</td>
-            <td>百度</td>
-            <td>PC</td>
-            <td>127.0.0.1</td>
-        </tr>
-        <tr>
-            <td>2023-1-1</td>
-            <td>www.baidu.com</td>
-            <td>百度</td>
-            <td>PC</td>
-            <td>127.0.0.1</td>
-        </tr>
-
-
     </table>
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            <li>
-                <a href="#" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">5</a></li>
-            <li>
-                <a href="#" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
 </div>
+
+<button id="go_top" type="button" class="btn btn-danger">顶部</button>
 <script type="text/javascript">
     // 处理网站选择搜索
-    $.get('/api/get_all_host', {}, function (data) {
+    $.get('/api/get_all_host?' + new Date(), {}, function (data) {
         let html = '';
         for (let i = 0; i < data.length; i++) {
             html += '<option value="' + data[i].host + '">' + data[i].host + '</option>';
@@ -164,7 +113,7 @@
 
     // 获取柱状
     function day_charts(date) {
-        $.get('/api/get_day_charts', {date: date}, function (data) {
+        $.get('/api/get_day_charts?' + new Date(), {date: date}, function (data) {
             //柱状图
             var dom = document.getElementById('chart-container');
             var myChart = echarts.init(dom, null, {
@@ -317,13 +266,7 @@
         day_charts(date);
     });
 
-
-    // 查询网站
-    $('#selected-echarts').change(function () {
-        let host = $(this).val();
-        if (host === 0) {
-            return;
-        }
+    function show_charts(host) {
         $.get('/api/get_charts_data?' + new Date(), {host: host}, function (data) {
             var myChart = echarts.init(document.getElementById('main'));
             // 基于准备好的dom，初始化echarts实例
@@ -364,9 +307,46 @@
             // 使用刚指定的配置项和数据显示图表。
             myChart.setOption(option);
         }, "JSON");
+    }
+
+    function show_table(host, log) {
+        //获取表格数据
+        $.get('/api/get_table_list?' + new Date(), {host: host, log: log}, function (data) {
+            let date_list = '';
+            for (var i = 0; i < data.logs.length; i++) {
+                date_list += '<button type="button" class="btn ' + (log === data.logs[i] ? 'btn-success' : 'btn-default') + ' btn-sm">' + data.logs[i] + '</button>';
+            }
+            $('.logs-box').html(date_list);
+
+            let table_list = '';
+            for (var i = 0; i < data.data.length; i++) {
+                table_list += "<tr><td>" + data.data[i].date + "</td><td>"
+                    + data.data[i].url + "</td><td>"
+                    + data.data[i].bot + "</td><td>"
+                    + data.data[i].device + "</td><td>"
+                    + data.data[i].ip + "</td></tr>";
+            }
+            $('#logs-box-td').html(table_list);
+        }, "JSON");
+    }
+
+    // 查询网站
+    $('#selected-echarts').change(function () {
+        let host = $(this).val();
+        if (host === 0) {
+            return;
+        }
+        show_charts(host);
+        show_table(host, 'spider-' + date + '.log');
+        $('.logs-box').on('click', '.btn', function () {
+            show_table(host, $(this)[0].innerText);
+        })
     });
 
 
+    go_top.onclick = function () {
+        document.body.scrollTop = document.documentElement.scrollTop = 0;
+    }
 </script>
 </body>
 </html>

@@ -161,23 +161,43 @@ class EchartsController extends Controller
     }
 
 
-    public function get_table_data(Request $request)
+    public function get_table_list(Request $request)
     {
         ini_set('date.timezone', 'Asia/Shanghai');
         set_time_limit(0);
-        $host_date_array = [];
-        $handler = opendir(storage_path('logs/' . $request->post('host')));
+        $host = $request->post('host');
+        $list_date_array = [
+            'host' => $host,
+            'log' => $request->get('log') ?? 'null',
+            'logs' => [],
+            'data' => [],
+        ];
+        $logs_date_array = [];
+        $handler = opendir(storage_path('logs/' . $host));;
+        $i = 0; // 查询60天的
         while (($filename = readdir($handler)) !== false) {
+            if ($i > 60) {
+                break;
+            }
             // 务必使用!==，防止目录下出现类似文件名“0”等情况
             if ($filename !== "." && $filename !== ".." && $filename !== ".gitignore") {
                 // 日期
-                $host_date_array[] = $filename;
+                $logs_date_array [] = $filename;
+                ++$i;
             }
         }
         closedir($handler);
-        $host_date_log_array = [];
-        for ($i = 0; $i < count($host_date_array); $i++) {
-            $file = fopen(storage_path("logs/{$request->post('host')}/{$host_date_array[$i]}"), "r");
+        rsort($logs_date_array);
+        if (count($logs_date_array)) {
+            $list_date_array['logs'] = $logs_date_array;
+            if ($list_date_array['log'] === 'null') {
+                $list_date_array['log'] = $list_date_array['logs'][0];
+            }
+        }
+
+        $log_path = storage_path("logs/{$host}/{$list_date_array['log']}");
+        if (file_exists($log_path)) {
+            $file = fopen($log_path, "r");
             //检测指正是否到达文件的未端
             while (!feof($file)) {
                 $line = fgets($file);
@@ -185,27 +205,34 @@ class EchartsController extends Controller
                     // 处理蜘蛛
                     $line_exp = explode('|', $line);
                     $line_exp_one = explode(' local.INFO: ', $line_exp[0]);
-                    // 时间为KEY
-//                    $host_date_log_array[
-//                        date('Y-m-d', strtotime(substr($line_exp_one[0], 1, -1)))
-//                    ][] = [
-//                        'data' => date('Y-m-d H:i:s', strtotime(substr($line_exp_one[0], 1, -1))),
-//                        'url' => $line_exp_one[1],
-//                        'ip' => $line_exp[3],
-//                    ];
-                    $host_date_array = [
-                        [
-                            "name" => "百度",
-                            "type" => "line",
-                            "stack" => "Total",
-                            "data" => [],
-                        ],
-                    ];
+                    $useragent = $line_exp[4];
+                    $bot = '';
+                    if (stripos($useragent, 'Baiduspider') !== false) {
+                        $bot = '百度';
+                    } elseif (stripos($useragent, 'Sogou web spider') !== false) {
+                        $bot = '搜狗 web';
+                    } elseif (stripos($useragent, 'Sogou inst spider') !== false) {
+                        $bot = '搜狗 inst';
+                    } elseif (stripos($useragent, '360Spider') !== false) {
+                        $bot = '360';
+                    } elseif (stripos($useragent, 'YisouSpider') !== false) {
+                        $bot = '神马';
+                    }
+                    if ($bot) {
+                        $list_date_array['data'][] = [
+                            'date' => date('Y-m-d H:i:s', strtotime(substr($line_exp_one[0], 1, -1))),
+                            'url' => $line_exp_one[1],
+                            'bot' => $bot,
+                            'device' => $this->is_mobile($useragent),
+                            'ip' => $line_exp[3],
+                        ];
+                    }
                 }
             }
             fclose($file);
+            $list_date_array['data'] = array_reverse($list_date_array['data']);
         }
-        dump($host_date_log_array);
+        return json_encode($list_date_array);
     }
 
     /**
@@ -224,5 +251,27 @@ class EchartsController extends Controller
         }
         closedir($handler);
         return $files;
+    }
+
+    function is_mobile(string $agent)
+    {
+        static $is_mobile = null;
+        if (isset($is_mobile)) {
+            return $is_mobile;
+        }
+        if (empty($agent)) {
+            $is_mobile = "-";
+        } elseif (strpos($agent, 'Mobile') !== false
+            || strpos($agent, 'Android') !== false
+            || strpos($agent, 'Silk/') !== false
+            || strpos($agent, 'Kindle') !== false
+            || strpos($agent, 'BlackBerry') !== false
+            || strpos($agent, 'Opera Mini') !== false
+            || strpos($agent, 'Opera Mobi') !== false) {
+            $is_mobile = "M";
+        } else {
+            $is_mobile = "PC";
+        }
+        return $is_mobile;
     }
 }
