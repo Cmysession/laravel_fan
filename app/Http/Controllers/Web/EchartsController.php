@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class EchartsController extends Controller
 {
@@ -19,17 +18,7 @@ class EchartsController extends Controller
      */
     public function get_all_host()
     {
-
-        $handler = opendir(storage_path('logs'));
-        $files = [];
-        while (($filename = readdir($handler)) !== false) {
-            // 务必使用!==，防止目录下出现类似文件名“0”等情况
-            if ($filename !== "." && $filename !== ".." && $filename !== ".gitignore") {
-                $files[] = ['host' => $filename];
-            }
-        }
-        closedir($handler);
-        return json_encode($files);
+        return json_encode($this->get_all_host_fun());
     }
 
     /**
@@ -97,6 +86,81 @@ class EchartsController extends Controller
         return json_encode($host_date_log_array);
     }
 
+    /**
+     * 获取所有域名每日的
+     * @param Request $request
+     * @return void
+     */
+    public function get_day_charts(Request $request)
+    {
+        ini_set('date.timezone', 'Asia/Shanghai');
+        set_time_limit(0);
+        $host_array = $this->get_all_host_fun();
+
+        $host_date_log_array = [
+            'legend_data' => ['百度', "360", '神马', '搜狗'],
+            "xAxis_data" => [],//域名
+            'series' => [
+                [
+                    'name' => '百度',
+                    'type' => 'bar',
+                    'barGap' => 0,
+                    'label' => 'labelOption',
+                    'emphasis' => ['focus' => 'series'],
+                    'data' => [],
+                ],
+                [
+                    'name' => '360',
+                    'type' => 'bar',
+                    'barGap' => 0,
+                    'label' => 'labelOption',
+                    'emphasis' => ['focus' => 'series'],
+                    'data' => [],
+                ],
+                [
+                    'name' => '神马',
+                    'type' => 'bar',
+                    'barGap' => 0,
+                    'label' => 'labelOption',
+                    'emphasis' => ['focus' => 'series'],
+                    'data' => [],
+                ],
+                [
+                    'name' => '搜狗',
+                    'type' => 'bar',
+                    'barGap' => 0,
+                    'label' => 'labelOption',
+                    'emphasis' => ['focus' => 'series'],
+                    'data' => [],
+                ],
+            ],
+        ];
+        $date = $request->post('date');
+        // 所有指定日期段的
+        $filename = "spider-$date.log";
+        for ($i = 0; $i < count($host_array); $i++) {
+            $host_name = $host_array[$i]['host'];
+            $file_path = storage_path("logs/{$host_name}/$filename");
+            $host_date_log_array['xAxis_data'][] = $host_name;
+            if (file_exists($file_path)) {
+                $file_get_contents = file_get_contents($file_path);
+                $host_date_log_array['series'][0]['data'][] = substr_count($file_get_contents, 'Baiduspider');
+                $host_date_log_array['series'][1]['data'][] = substr_count($file_get_contents, '360Spider');
+                $host_date_log_array['series'][2]['data'][] = substr_count($file_get_contents, 'YisouSpider');
+                $host_date_log_array['series'][3]['data'][] = substr_count($file_get_contents, 'Sogou inst spider')
+                    + substr_count($file_get_contents, 'Sogou web spider')
+                    + substr_count($file_get_contents, 'Sogou spider');
+            } else {
+                $host_date_log_array['series'][0]['data'][] = 0;
+                $host_date_log_array['series'][1]['data'][] = 0;
+                $host_date_log_array['series'][2]['data'][] = 0;
+                $host_date_log_array['series'][3]['data'][] = 0;
+            }
+        }
+        return json_encode($host_date_log_array);
+    }
+
+
     public function get_table_data(Request $request)
     {
         ini_set('date.timezone', 'Asia/Shanghai');
@@ -114,7 +178,7 @@ class EchartsController extends Controller
         $host_date_log_array = [];
         for ($i = 0; $i < count($host_date_array); $i++) {
             $file = fopen(storage_path("logs/{$request->post('host')}/{$host_date_array[$i]}"), "r");
-//            //检测指正是否到达文件的未端
+            //检测指正是否到达文件的未端
             while (!feof($file)) {
                 $line = fgets($file);
                 if ($line) {
@@ -142,5 +206,23 @@ class EchartsController extends Controller
             fclose($file);
         }
         dump($host_date_log_array);
+    }
+
+    /**
+     * 获取所有域名
+     * @return array
+     */
+    public function get_all_host_fun(): array
+    {
+        $handler = opendir(storage_path('logs'));
+        $files = [];
+        while (($filename = readdir($handler)) !== false) {
+            // 务必使用!==，防止目录下出现类似文件名“0”等情况
+            if ($filename !== "." && $filename !== ".." && $filename !== "laravel.log" && $filename !== ".gitignore") {
+                $files[] = ['host' => $filename];
+            }
+        }
+        closedir($handler);
+        return $files;
     }
 }

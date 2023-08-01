@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>ECharts</title>
+    <title>统计图</title>
     <!-- 引入刚刚下载的 ECharts 文件 -->
     <link href="{{ asset('bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <script src="{{ asset('bootstrap/js/jquery-3.7.0.min.js') }}"></script>
@@ -19,11 +19,6 @@
             width: 200px;
         }
 
-        #echarts-box .row-box {
-            margin: 10px;
-            font-weight: bold;
-        }
-
         #table-box {
             background: #ebeeed;
             margin: 10px;
@@ -32,9 +27,28 @@
         #table-box .form-control {
             width: 200px;
         }
+
+        #container-box {
+            background: #ebeeed;
+            margin: 10px;
+        }
+
+        #container-box .form-control {
+            width: 200px;
+        }
     </style>
 </head>
 <body>
+{{--走势图搜索--}}
+<div id="container-box">
+    <div class="input-group">
+        <span class="input-group-addon" id="basic-addon1">时间选择</span>
+        <input type="date" class="form-control" id="search-date">
+    </div>
+    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+    <div id="chart-container" style="position: relative;width: 100%;height:400px;overflow: hidden;"></div>
+</div>
+
 {{--走势图搜索--}}
 <div id="echarts-box">
     <div class="input-group">
@@ -46,16 +60,8 @@
 
     <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
     <div id="main" style="width: 100%;height:400px;"></div>
-    <div class="row row-box">
-        <div class="col-md-1">总蜘蛛</div>
-        <div class="col-md-1">百度:100</div>
-        <div class="col-md-1">百度:100</div>
-        <div class="col-md-1">百度:100</div>
-        <div class="col-md-1">百度:100</div>
-        <div class="col-md-1">百度:100</div>
-        <div class="col-md-1">百度:100</div>
-    </div>
 </div>
+
 
 {{--表格搜索--}}
 <div id="table-box">
@@ -145,6 +151,172 @@
         $('#selected-echarts').append(html);
     }, "JSON");
 
+    var now = new Date();
+    var yy = now.getFullYear();      //年
+    var mm = now.getMonth() + 1;     //月
+    var dd = now.getDate();          //日
+    var clock = yy + "-";
+    if (mm < 10) clock += "0";
+    clock += mm + "-";
+    if (dd < 10) clock += "0";
+    var date = clock += dd;
+    $('#search-date').val(date);
+
+    // 获取柱状
+    function day_charts(date) {
+        $.get('/api/get_day_charts', {date: date}, function (data) {
+            //柱状图
+            var dom = document.getElementById('chart-container');
+            var myChart = echarts.init(dom, null, {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+            var app = {};
+
+            var option;
+
+            const posList = [
+                'left',
+                'right',
+                'top',
+                'bottom',
+                'inside',
+                'insideTop',
+                'insideLeft',
+                'insideRight',
+                'insideBottom',
+                'insideTopLeft',
+                'insideTopRight',
+                'insideBottomLeft',
+                'insideBottomRight'
+            ];
+            app.configParameters = {
+                rotate: {
+                    min: -90,
+                    max: 90
+                },
+                align: {
+                    options: {
+                        left: 'left',
+                        center: 'center',
+                        right: 'right'
+                    }
+                },
+                verticalAlign: {
+                    options: {
+                        top: 'top',
+                        middle: 'middle',
+                        bottom: 'bottom'
+                    }
+                },
+                position: {
+                    options: posList.reduce(function (map, pos) {
+                        map[pos] = pos;
+                        return map;
+                    }, {})
+                },
+                distance: {
+                    min: 0,
+                    max: 100
+                }
+            };
+            app.config = {
+                rotate: 90,
+                align: 'left',
+                verticalAlign: 'middle',
+                position: 'insideBottom',
+                distance: 15,
+                onChange: function () {
+                    const labelOption = {
+                        rotate: app.config.rotate,
+                        align: app.config.align,
+                        verticalAlign: app.config.verticalAlign,
+                        position: app.config.position,
+                        distance: app.config.distance
+                    };
+                    myChart.setOption({
+                        series: [
+                            {
+                                label: labelOption
+                            },
+                            {
+                                label: labelOption
+                            },
+                            {
+                                label: labelOption
+                            },
+                            {
+                                label: labelOption
+                            }
+                        ]
+                    });
+                }
+            };
+            const labelOption = {
+                show: true,
+                position: app.config.position,
+                distance: app.config.distance,
+                align: app.config.align,
+                verticalAlign: app.config.verticalAlign,
+                rotate: app.config.rotate,
+                formatter: '{c}  {name|{a}}',
+                fontSize: 16,
+                rich: {
+                    name: {}
+                }
+            };
+            option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: data.legend_data
+                },
+                toolbox: {
+                    show: true,
+                    orient: 'vertical',
+                    left: 'right',
+                    top: 'center',
+                    feature: {
+                        mark: {show: true},
+                        dataView: {show: true, readOnly: false},
+                        magicType: {show: true, type: ['line', 'bar', 'stack']},
+                        restore: {show: true},
+                        saveAsImage: {show: true}
+                    }
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        axisTick: {show: false},
+                        data: data.xAxis_data
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: data.series
+            };
+
+            if (option && typeof option === 'object') {
+                myChart.setOption(option);
+            }
+
+            window.addEventListener('resize', myChart.resize);
+        }, "JSON");
+    }
+
+    day_charts(date);
+    $('#search-date').change(function () {
+        let date = $(this).val();
+        day_charts(date);
+    });
+
 
     // 查询网站
     $('#selected-echarts').change(function () {
@@ -152,7 +324,7 @@
         if (host === 0) {
             return;
         }
-        $.get('/api/get_charts_data?'+new Date(), {host: host}, function (data) {
+        $.get('/api/get_charts_data?' + new Date(), {host: host}, function (data) {
             var myChart = echarts.init(document.getElementById('main'));
             // 基于准备好的dom，初始化echarts实例
             var selected_array = data.selected_array;
@@ -193,6 +365,7 @@
             myChart.setOption(option);
         }, "JSON");
     });
+
 
 </script>
 </body>

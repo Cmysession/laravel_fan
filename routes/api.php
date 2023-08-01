@@ -15,3 +15,4 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/get_all_host', [\App\Http\Controllers\Web\EchartsController::class, 'get_all_host']);
 Route::get('/get_charts_data', [\App\Http\Controllers\Web\EchartsController::class, 'get_charts_data']);
+Route::get('/get_day_charts', [\App\Http\Controllers\Web\EchartsController::class, 'get_day_charts']);
