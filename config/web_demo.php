@@ -9,7 +9,7 @@ return [
 
         // 百度推送相关
         'baidu_status' => 0, //是否推送 1开,0关
-        'baidu_number' => 10, //每日推送条数
+        'baidu_number' => 0, //每日推送条数
         'baidu_token' => '', //推送 token
         'prefix_site_array' => [  // 泛前缀  泛前缀 -- 百度推送需要 默认www
 
