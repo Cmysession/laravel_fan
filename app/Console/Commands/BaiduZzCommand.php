@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Models\IndexModel;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Monolog\Handler\RotatingFileHandler;
+use function PHPUnit\Framework\isFalse;
 
 class BaiduZzCommand extends Command
 {
@@ -39,6 +41,7 @@ class BaiduZzCommand extends Command
     public $web_model = [];
     public $web_index = 0;
     public $web_keys = [];
+    public $prefix_site_array = [];
 
     /**
      * Create a new command instance.
@@ -75,24 +78,49 @@ class BaiduZzCommand extends Command
         }
         $web_host = $this->web_keys[$this->web_index];
         $web_info = $this->web_model[$web_host];
+        $prefix_site_array = $this->web_model[$web_host]['prefix_site_array'];
         if ($web_info['baidu_status'] === 1 && $web_info['baidu_token'] !== '') {
-            $host_array = [];
+            $url_array = [];
+            $prefix_str = 'www';
+            if (count($prefix_site_array)) {
+                $prefix_str = $prefix_site_array[rand(0, count($prefix_site_array) - 1)];
+            }
+            $site = '';
+            $token = $web_info['baidu_token'];
             // 发布几条
             for ($i = 0; $i < $web_info['baidu_number']; $i++) {
-                $prefix_str = $web_host;
+                $url = '';
                 // 判断是否泛域名
                 if ($web_info['prefix_status'] === 1) {
-                    $prefix_str = array_rand($this->prefix_array) . '.' . $web_host;
+                    $site = $prefix_str . '.' . $web_host;
+                } else {
+                    $site = 'www.' . $web_host;
                 }
                 // 判断是否泛目录
                 if ($web_info['prefix_path_status'] === 1) {
-                    $prefix_str .= '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+                    $url .= $site . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
                 }
-                $host_array[] = $prefix_str;
+                $url_array[] = $url;
             }
-            $this->info("开始推送:$web_host,共{$web_info['baidu_number']}条");
-        }
+            $this->info("开始推送:$site,token:{$token},共{$web_info['baidu_number']}条");
+            $baidu_put = $this->baidu_put($url_array, $site, $token);
 
+            if (empty($baidu_put['success'])) {
+                $message = '地址有误!或网站错误!';
+                if (!empty($baidu_put['message'])) {
+                    $message = $baidu_put['message'];
+                }
+                // 推送失败的
+                (new \Monolog\Logger('local'))
+                    ->pushHandler(new RotatingFileHandler(storage_path("baidu-zz-logs/error.log")))
+                    ->info("推送出错:$message,域名:$site,token:{$token},共{$web_info['baidu_number']}条", $url_array);
+            }else{
+                // 推送成功
+                (new \Monolog\Logger('local'))
+                    ->pushHandler(new RotatingFileHandler(storage_path("baidu-zz-logs/success.log")))
+                    ->info("推送成功:$site,token:{$token},共{$web_info['baidu_number']}条",$baidu_put);
+            }
+        }
         ++$this->web_index;
         $this->run_baidu_zz();
     }
@@ -101,22 +129,24 @@ class BaiduZzCommand extends Command
      * @param array $urls
      * @param string $site
      * @param string $token
-     * @return void
      */
     public function baidu_put(array $urls, string $site, string $token)
     {
-//        http://data.zz.baidu.com/urls?site=www.ynyqs.com&token=snDk3PEUyIGIOQ1K
         $api = 'http://data.zz.baidu.com/urls?site=' . $site . '&token=' . $token;
-        $ch = \curl_init();
-        $options = array(
-            CURLOPT_URL => $api,
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POSTFIELDS => implode("\n", $urls),
-            CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
-        );
-        curl_setopt_array($ch, $options);
-        $result = curl_exec($ch);
-        echo $result;
+        try {
+            $ch = \curl_init();
+            $options = array(
+                CURLOPT_URL => $api,
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POSTFIELDS => implode("\n", $urls),
+                CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
+            );
+            curl_setopt_array($ch, $options);
+            return json_decode(curl_exec($ch),true);
+        } catch (\Exception $exception) {
+            return json_encode(['message' => $exception->getMessage()]);
+        }
+
     }
 }
