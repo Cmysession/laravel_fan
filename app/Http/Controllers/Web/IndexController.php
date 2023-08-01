@@ -478,12 +478,12 @@ class IndexController extends Controller
         } elseif (stripos($useragent, 'YoudaoBot') !== false) {
             $bot = '有道';
         } elseif (stripos($useragent, 'YisouSpider') !== false) {
-            $bot = '一搜';
+            $bot = '神马';
         }  elseif (stripos($useragent, 'YandexBot') !== false) {
             $bot = 'Yandex';
             $this->bot_spider = false;
         }  elseif (stripos($useragent, 'spider') !== false) {
-            $bot = 'spider';
+            $bot = '其他';
         } else {
             $bot = 'NO Spider';
         }
