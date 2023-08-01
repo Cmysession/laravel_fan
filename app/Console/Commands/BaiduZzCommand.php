@@ -52,7 +52,7 @@ class BaiduZzCommand extends Command
         $this->prefix_array = $indexModel->prefix_array;
         $this->request_url_array = $indexModel->request_url_array;
         $this->nickname = $indexModel->nickname;
-        $this->web_model = config('web');
+        $this->web_model = config('web') ?? [];
         $this->web_keys = array_keys($this->web_model);
     }
 
@@ -76,9 +76,23 @@ class BaiduZzCommand extends Command
         $web_host = $this->web_keys[$this->web_index];
         $web_info = $this->web_model[$web_host];
         if ($web_info['baidu_status'] === 1 && $web_info['baidu_token'] !== '') {
-
+            $host_array = [];
+            // 发布几条
+            for ($i = 0; $i < $web_info['baidu_number']; $i++) {
+                $prefix_str = $web_host;
+                // 判断是否泛域名
+                if ($web_info['prefix_status'] === 1) {
+                    $prefix_str = array_rand($this->prefix_array) . '.' . $web_host;
+                }
+                // 判断是否泛目录
+                if ($web_info['prefix_path_status'] === 1) {
+                    $prefix_str .= '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+                }
+                $host_array[] = $prefix_str;
+            }
             $this->info("开始推送:$web_host,共{$web_info['baidu_number']}条");
         }
+
         ++$this->web_index;
         $this->run_baidu_zz();
     }
@@ -89,13 +103,10 @@ class BaiduZzCommand extends Command
      * @param string $token
      * @return void
      */
-    public function baidu_put(array $urls = [], string $site, string $token)
+    public function baidu_put(array $urls, string $site, string $token)
     {
-        $urls = array(
-            'http://www.example.com/1.html',
-            'http://www.example.com/2.html',
-        );
-        $api = 'http://data.zz.baidu.com/urls?site='.$site.'&token=' . $token;
+//        http://data.zz.baidu.com/urls?site=www.ynyqs.com&token=snDk3PEUyIGIOQ1K
+        $api = 'http://data.zz.baidu.com/urls?site=' . $site . '&token=' . $token;
         $ch = \curl_init();
         $options = array(
             CURLOPT_URL => $api,
