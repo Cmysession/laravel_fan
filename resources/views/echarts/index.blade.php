@@ -32,7 +32,6 @@
             margin: 10px;
         }
 
-
         #go_top {
             height: 70px;
             width: 70px;
@@ -78,13 +77,7 @@
             <th>来源</th>
             <th>设备</th>
             <th>IP</th>
-            <tbody id="logs-box-td">
-            <td>日期</td>
-            <td>网站</td>
-            <td>来源</td>
-            <td>设备</td>
-            <td>IP</td>
-            </tbody>
+            <tbody id="logs-box-td"></tbody>
         </tr>
     </table>
 </div>
