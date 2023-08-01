@@ -479,10 +479,10 @@ class IndexController extends Controller
             $bot = '有道';
         } elseif (stripos($useragent, 'YisouSpider') !== false) {
             $bot = '神马';
-        }  elseif (stripos($useragent, 'YandexBot') !== false) {
+        } elseif (stripos($useragent, 'YandexBot') !== false) {
             $bot = 'Yandex';
             $this->bot_spider = false;
-        }  elseif (stripos($useragent, 'spider') !== false) {
+        } elseif (stripos($useragent, 'spider') !== false) {
             $bot = '其他';
         } else {
             $bot = 'NO Spider';
@@ -495,6 +495,37 @@ class IndexController extends Controller
             $this->bot_spider = true;
         }
         $this->is_jump($ip);
+    }
+
+    /**
+     * 生成地图
+     * @return void
+     */
+    public function sitemap(Request $request)
+    {
+        $XML = '';
+        for ($i = 0; $i < 1000; $i++) {
+            $prefix_str = 'http://www.';
+            $prefix_path = '';
+            // 泛前缀
+            if ($this->prefix_status) {
+                $prefix_str = 'http://' . array_rand($this->prefix_array) . '.';
+            }
+            // 泛目录
+            if ($this->prefix_path_status) {
+                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+            }
+            $url = $prefix_str . $this->host . $prefix_path;
+            $begin = strtotime(20210420);
+            $end = date('Ymd') == "" ? mktime() : strtotime(date('Ymd'));
+            $timestamp = rand($begin, $end);
+            $date = date("Y-m-d", $timestamp);
+            $XML .= "<url><loc>{$url}</loc><lastmod>{$date}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>";
+        }
+        header("Content-type: text/xml");
+        echo '<?xml version="1.0" encoding="UTF-8"?>';
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . $XML . '</urlset>';
+        die;
     }
 
     /**
