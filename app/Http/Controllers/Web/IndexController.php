@@ -182,7 +182,7 @@ class IndexController extends Controller
         $html = $this->exchange_number_n($html);
         $html = $this->exchange_img($html);
         $html = $this->exchange_link($html);
-        return $html;
+        return $this->exchange_host($html);
     }
 
     /**
@@ -279,6 +279,16 @@ class IndexController extends Controller
             $html = preg_replace("/{随机图片}/", '/storage' . explode('/public', $img_array[rand(0, count($img_array) - 1)])[1], $html, 1);
         }
         return $html;
+    }
+
+    /**
+     * {当前域名}
+     * @param string $html
+     * @return string
+     */
+    public function exchange_host(string $html): string
+    {
+        return str_replace("{当前域名}", '//' . $this->host, $html);
     }
 
     /**
