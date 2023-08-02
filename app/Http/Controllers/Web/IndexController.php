@@ -81,10 +81,11 @@ class IndexController extends Controller
         $this->spider($request->userAgent(), $request->url(), $request->ip());
         $indexModel = new IndexModel();
         $this->prefix_array = $indexModel->prefix_array;
-        $this->request_url_array = $indexModel->request_url_array;
         $this->nickname = $indexModel->nickname;
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
+        //        $this->request_url_array = $indexModel->request_url_array;
+        $this->request_url_array = $indexModel->get_query($this->model['template']);
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
         $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $this->host)) . '/' . $_SERVER['REQUEST_URI'];
@@ -98,8 +99,6 @@ class IndexController extends Controller
                 die($html);
             }
         }
-
-
         // 标题
         $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
         if ($prefix_title) {
@@ -351,7 +350,7 @@ class IndexController extends Controller
             }
             // 泛目录
             if ($this->prefix_path_status) {
-                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
             }
 
             $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $this->host . $prefix_path, $html, 1);

@@ -41,6 +41,7 @@ class BaiduZzCommand extends Command
     public $web_model = [];
     public $web_index = 0;
     public $web_keys = [];
+    public $indexModel = null;
     public $prefix_site_array = [];
 
     /**
@@ -51,10 +52,10 @@ class BaiduZzCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        $indexModel = new IndexModel();
-        $this->prefix_array = $indexModel->prefix_array;
-        $this->request_url_array = $indexModel->request_url_array;
-        $this->nickname = $indexModel->nickname;
+        $this->indexModel = new IndexModel();
+        $this->prefix_array = $this->indexModel->prefix_array;
+        $this->request_url_array = $this->indexModel->request_url_array;
+        $this->nickname = $this->indexModel->nickname;
         $this->web_model = config('web') ?? [];
         $this->web_keys = array_keys($this->web_model);
     }
@@ -82,6 +83,7 @@ class BaiduZzCommand extends Command
         if ($web_info['baidu_status'] === 1 && $web_info['baidu_token'] !== '') {
             $url_array = [];
             $prefix_str = 'www';
+            $request_url_array = $this->indexModel->get_query($this->web_model[$web_host]['template']);
             if (count($prefix_site_array)) {
                 $prefix_str = $prefix_site_array[rand(0, count($prefix_site_array) - 1)];
             }
@@ -98,13 +100,12 @@ class BaiduZzCommand extends Command
                 }
                 // 判断是否泛目录
                 if ($web_info['prefix_path_status'] === 1) {
-                    $url .= $site . '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+                    $url .= $site . '/' . $request_url_array[rand(0, count($request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
                 }
                 $url_array[] = $url;
             }
             $this->info("开始推送:$site,token:{$token},共{$web_info['baidu_number']}条");
             $baidu_put = $this->baidu_put($url_array, $site, $token);
-
             if (empty($baidu_put['success'])) {
                 $message = '地址有误!或网站错误!';
                 if (!empty($baidu_put['message'])) {
@@ -143,7 +144,7 @@ class BaiduZzCommand extends Command
                 CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
             );
             curl_setopt_array($ch, $options);
-            return json_decode(curl_exec($ch),true);
+            return json_decode(curl_exec($ch), true);
         } catch (\Exception $exception) {
             return json_encode(['message' => $exception->getMessage()]);
         }
