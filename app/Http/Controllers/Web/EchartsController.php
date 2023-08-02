@@ -198,6 +198,7 @@ class EchartsController extends Controller
         $log_path = storage_path("logs/{$host}/{$list_date_array['log']}");
         if (file_exists($log_path)) {
             $file = fopen($log_path, "r");
+            $ip_spider_array = config('ip_spider')?? [];
             //检测指正是否到达文件的未端
             while (!feof($file)) {
                 $line = fgets($file);
@@ -206,6 +207,8 @@ class EchartsController extends Controller
                     $line_exp = explode('|', $line);
                     $line_exp_one = explode(' local.INFO: ', $line_exp[0]);
                     $useragent = $line_exp[4];
+                    $ip_exp = explode('.',$line_exp[3]);
+                    $ip_exp_str = $ip_exp[0].'.'.$ip_exp[1];
                     $bot = '';
                     if (stripos($useragent, 'Baiduspider') !== false) {
                         $bot = '百度';
@@ -217,7 +220,10 @@ class EchartsController extends Controller
                         $bot = '360';
                     } elseif (stripos($useragent, 'YisouSpider') !== false) {
                         $bot = '神马';
+                    } elseif (!empty($ip_spider_array[$ip_exp_str])) {
+                        $bot = $ip_spider_array[$ip_exp_str];
                     }
+                    
                     if ($bot) {
                         $list_date_array['data'][] = [
                             'date' => date('Y-m-d H:i:s', strtotime(substr($line_exp_one[0], 1, -1))),
