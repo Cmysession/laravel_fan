@@ -288,7 +288,7 @@ class IndexController extends Controller
      */
     public function exchange_host(string $html): string
     {
-        return str_replace("{当前域名}", '//' . $this->host, $html);
+        return str_replace("{当前域名}", '//' . $_SERVER['HTTP_HOST'], $html);
     }
 
     /**
