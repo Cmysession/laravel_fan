@@ -37,22 +37,22 @@ class EchartsController extends Controller
                 [
                     'name' => '百度',
                     'type' => 'line',
-//                    'stack' => 'Total'
+                    //                    'stack' => 'Total'
                 ],
                 [
                     'name' => "360",
                     'type' => 'line',
-//                    'stack' => 'Total'
+                    //                    'stack' => 'Total'
                 ],
                 [
                     'name' => '神马',
                     'type' => 'line',
-//                    'stack' => 'Total'
+                    //                    'stack' => 'Total'
                 ],
                 [
                     'name' => '搜狗',
                     'type' => 'line',
-//                    'stack' => 'Total'
+                    //                    'stack' => 'Total'
                 ]
             ],
         ];
@@ -99,7 +99,7 @@ class EchartsController extends Controller
 
         $host_date_log_array = [
             'legend_data' => ['百度', "360", '神马', '搜狗'],
-            "xAxis_data" => [],//域名
+            "xAxis_data" => [], //域名
             'series' => [
                 [
                     'name' => '百度',
@@ -171,6 +171,7 @@ class EchartsController extends Controller
             'log' => $request->get('log') ?? 'null',
             'logs' => [],
             'data' => [],
+            'total' => ['bd' => 0, 'sg' => 0, 's6' => 0, 'sm' => 0],
         ];
         $logs_date_array = [];
         $handler = opendir(storage_path('logs/' . $host));;
@@ -182,7 +183,7 @@ class EchartsController extends Controller
             // 务必使用!==，防止目录下出现类似文件名“0”等情况
             if ($filename !== "." && $filename !== ".." && $filename !== ".gitignore") {
                 // 日期
-                $logs_date_array [] = $filename;
+                $logs_date_array[] = $filename;
                 ++$i;
             }
         }
@@ -198,7 +199,7 @@ class EchartsController extends Controller
         $log_path = storage_path("logs/{$host}/{$list_date_array['log']}");
         if (file_exists($log_path)) {
             $file = fopen($log_path, "r");
-            $ip_spider_array = config('ip_spider')?? [];
+            $ip_spider_array = config('ip_spider') ?? [];
             //检测指正是否到达文件的未端
             while (!feof($file)) {
                 $line = fgets($file);
@@ -207,23 +208,36 @@ class EchartsController extends Controller
                     $line_exp = explode('|', $line);
                     $line_exp_one = explode(' local.INFO: ', $line_exp[0]);
                     $useragent = $line_exp[4];
-                    $ip_exp = explode('.',$line_exp[3]);
-                    $ip_exp_str = $ip_exp[0].'.'.$ip_exp[1];
+                    $ip_exp = explode('.', $line_exp[3]);
+                    $ip_exp_str = $ip_exp[0] . '.' . $ip_exp[1];
                     $bot = '';
                     if (stripos($useragent, 'Baiduspider') !== false) {
                         $bot = '百度';
+                        ++$list_date_array['total']['bd'];
                     } elseif (stripos($useragent, 'Sogou web spider') !== false) {
                         $bot = '搜狗 web';
+                        ++$list_date_array['total']['sg'];
                     } elseif (stripos($useragent, 'Sogou inst spider') !== false) {
                         $bot = '搜狗 inst';
+                        ++$list_date_array['total']['sg'];
                     } elseif (stripos($useragent, '360Spider') !== false) {
                         $bot = '360';
+                        ++$list_date_array['total']['s6'];
                     } elseif (stripos($useragent, 'YisouSpider') !== false) {
                         $bot = '神马';
+                        ++$list_date_array['total']['sm'];
                     } elseif (!empty($ip_spider_array[$ip_exp_str])) {
                         $bot = $ip_spider_array[$ip_exp_str];
+                        if ($bot === '百度') {
+                            ++$list_date_array['total']['sm'];
+                        } elseif ($bot === '搜狗') {
+                            ++$list_date_array['total']['sg'];
+                        } elseif ($bot === '360') {
+                            ++$list_date_array['total']['s6'];
+                        } elseif ($bot === '神马') {
+                            ++$list_date_array['total']['sm'];
+                        }
                     }
-                    
                     if ($bot) {
                         $list_date_array['data'][] = [
                             'date' => date('Y-m-d H:i:s', strtotime(substr($line_exp_one[0], 1, -1))),
@@ -267,13 +281,15 @@ class EchartsController extends Controller
         }
         if (empty($agent)) {
             $is_mobile = "-";
-        } elseif (strpos($agent, 'Mobile') !== false
+        } elseif (
+            strpos($agent, 'Mobile') !== false
             || strpos($agent, 'Android') !== false
             || strpos($agent, 'Silk/') !== false
             || strpos($agent, 'Kindle') !== false
             || strpos($agent, 'BlackBerry') !== false
             || strpos($agent, 'Opera Mini') !== false
-            || strpos($agent, 'Opera Mobi') !== false) {
+            || strpos($agent, 'Opera Mobi') !== false
+        ) {
             $is_mobile = "M";
         } else {
             $is_mobile = "PC";
