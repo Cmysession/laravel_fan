@@ -150,4 +150,22 @@ class BaiduZzCommand extends Command
         }
 
     }
+
+    
+    /**
+     * 随机字符
+     */
+    public function get_rand_str(): string
+    {
+        //字符组合
+        $str = 'abcdefghijklmnopqrstuvwxyz';
+        $len = strlen($str) - 1;
+        $length = rand(3, 5);
+        $randstr = '';
+        for ($i = 0; $i < $length; $i++) {
+            $num = mt_rand(0, $len);
+            $randstr .= $str[$num];
+        }
+        return $randstr;
+    }
 }

