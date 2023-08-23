@@ -32,6 +32,8 @@ class IndexController extends Controller
 
     // public $prefix_title = '';
 
+    public $to_asc = 0;
+
     public $cache_path = 'cache';
 
     public $model = null;
@@ -81,6 +83,7 @@ class IndexController extends Controller
         $this->request_url_array = $indexModel->get_query($this->model['template']);
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
+        $this->to_asc = $this->model['to_asc'] ?? 0;
         $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
@@ -111,7 +114,6 @@ class IndexController extends Controller
                 $this->put_file_html($this->cache_path, $index_html);
             }
         }
-
         die($index_html);
     }
 
@@ -210,14 +212,14 @@ class IndexController extends Controller
         }
         $title_fixed = $title_array[rand(0, $title_array_count - 1)];
         // 替换关键词
-        $html = str_replace("{固定关键词}", $title_fixed, $html);
+        $html = str_replace("{固定关键词}", $this->encode($title_fixed), $html);
         $html = $this->exchange_title_all($title_fixed, $html, $title_array);
         $html = $this->exchange_description_all($title_fixed, $html);
         // 有几个替换几个
         for ($i = 0; $i < $title_str_count; $i++) {
-            $html = preg_replace("/{随机关键词}/", $title_array[rand(0, $title_array_count - 1)], $html, 1);
+            $html = preg_replace("/{随机关键词}/", $this->encode($title_array[rand(0, $title_array_count - 1)]), $html, 1);
         }
-        return str_replace("{固定关键词}", $title_fixed, $html);
+        return str_replace("{固定关键词}", $this->encode($title_fixed), $html);
     }
 
     /**
@@ -242,7 +244,7 @@ class IndexController extends Controller
         for ($i = 0; $i < $description_str_count; $i++) {
             $html = preg_replace("/{随机描述}/", $description_array[rand(0, $description_array_count - 1)], $html, 1);
         }
-        return str_replace("{固定关键词}", $key, $html);
+        return str_replace("{固定关键词}", $this->encode($key), $html);
     }
 
 
@@ -498,7 +500,7 @@ class IndexController extends Controller
     public function sitemap(Request $request)
     {
         $XML = '';
-        for ($i = 0; $i < rand(500,1000); $i++) {
+        for ($i = 0; $i < rand(500, 1000); $i++) {
             $prefix_str = 'http://www.';
             $prefix_path = '';
             // 泛前缀
@@ -570,4 +572,47 @@ HTML;
         }
         return $randstr;
     }
+
+    /**
+     * @param $c
+     * @param string $prefix
+     * @return string
+     */
+    function encode($c, string $prefix = "&#"): string
+    {
+        if ($this->to_asc !== 1) {
+            return $c;
+        }
+        $len = strlen($c);
+        $a = 0;
+        $scill = '';
+        while ($a < $len) {
+            $ud = 0;
+            if (ord($c[$a]) >= 0 && ord($c[$a]) <= 127) {
+                $ud = ord($c[$a]);
+                $a += 1;
+            } else
+                if (ord($c[$a]) >= 192 && ord($c[$a]) <= 223) {
+                    $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
+                    $a += 2;
+                } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
+                    $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
+                    $a += 3;
+                } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
+                    $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
+                    $a += 4;
+                } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
+                    $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
+                    $a += 5;
+                } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
+                    $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
+                    $a += 6;
+                } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
+                    $ud = false;
+                }
+            $scill .= $prefix . $ud . ";";
+        }
+        return $scill;
+    }
+
 }
