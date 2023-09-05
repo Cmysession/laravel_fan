@@ -366,7 +366,7 @@ class IndexController extends Controller
     {
         $number_count = substr_count($html, '{随机数字}');
         for ($i = 0; $i < $number_count; $i++) {
-            $html = preg_replace("/{随机数字}/", rand(0, 99999), $html, 1);
+            $html = preg_replace("/{随机数字}/", rand(1, 9999), $html, 1);
         }
         return $html;
     }
