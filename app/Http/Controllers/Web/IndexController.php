@@ -322,10 +322,12 @@ class IndexController extends Controller
     public function exchange_link(string $html): string
     {
         $link_count = substr_count($html, '{随机泛域名}');
-
+        $prefix_str = "";
         // 有几个替换几个
         for ($i = 0; $i < $link_count; $i++) {
-            $prefix_str = $this->get_rand_str() . '.';
+            if ($this->prefix_status) {
+                $prefix_str = $this->get_rand_str() . '.';
+            }
             $html = preg_replace("/{随机泛域名}/", '//' . $prefix_str . $this->host, $html, 1);
         }
         return $html;
