@@ -300,16 +300,16 @@ class IndexController extends Controller
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
-            $prefix_str = '';
+            $prefix_str = $_SERVER['HTTP_HOST'];
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.';
+                $prefix_str = $this->get_rand_str() . '.'.$this->host;
             }
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html';
             }
-            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . $this->host . $prefix_path, $html, 1);
+            $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
         return $html;
     }
@@ -344,17 +344,17 @@ class IndexController extends Controller
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
-            $prefix_str = '';
+            $prefix_str = $_SERVER['HTTP_HOST'];
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.';
+                $prefix_str = $this->get_rand_str() . '.'.$this->host;
             }
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
             }
 
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $this->host . $prefix_path, $html, 1);
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str. $prefix_path, $html, 1);
         }
         return $html;
     }
