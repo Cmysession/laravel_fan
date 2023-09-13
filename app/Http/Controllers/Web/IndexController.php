@@ -169,6 +169,7 @@ class IndexController extends Controller
         $html = $this->exchange_img($html);
         $html = $this->exchange_link($html);
         $html = $this->exchange_host_text($html);
+        $html = $this->class_label($html);
         return $this->exchange_host($html);
     }
 
@@ -286,7 +287,7 @@ class IndexController extends Controller
      */
     public function exchange_host_text(string $html): string
     {
-        return str_replace("{文本当前域名}",  $_SERVER['HTTP_HOST'], $html);
+        return str_replace("{文本当前域名}", $_SERVER['HTTP_HOST'], $html);
     }
 
     /**
@@ -303,7 +304,7 @@ class IndexController extends Controller
             $prefix_str = $_SERVER['HTTP_HOST'];
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.'.$this->host;
+                $prefix_str = $this->get_rand_str() . '.' . $this->host;
             }
             // 泛目录
             if ($this->prefix_path_status) {
@@ -347,14 +348,14 @@ class IndexController extends Controller
             $prefix_str = $_SERVER['HTTP_HOST'];
             // 泛前缀
             if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.'.$this->host;
+                $prefix_str = $this->get_rand_str() . '.' . $this->host;
             }
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
             }
 
-            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str. $prefix_path, $html, 1);
+            $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
         return $html;
     }
@@ -419,6 +420,20 @@ class IndexController extends Controller
         $number_count = substr_count($html, '{随机网名}');
         for ($i = 0; $i < $number_count; $i++) {
             $html = preg_replace("/{随机网名}/", $this->nickname[rand(0, count($this->nickname) - 1)], $html, 1);
+        }
+        return $html;
+    }
+
+    /**
+     * {模板}
+     * @param string $html
+     * @return string
+     */
+    public function class_label(string $html): string
+    {
+        $number_count = substr_count($html, '{模板}');
+        for ($i = 0; $i < $number_count; $i++) {
+            $html = preg_replace("/{模板}/", str_replace(".", "-", $this->host), $html, 1);
         }
         return $html;
     }
@@ -607,23 +622,23 @@ HTML;
                 $a += 1;
             } else
                 if (ord($c[$a]) >= 192 && ord($c[$a]) <= 223) {
-                $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
-                $a += 2;
-            } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
-                $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
-                $a += 3;
-            } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
-                $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
-                $a += 4;
-            } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
-                $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
-                $a += 5;
-            } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
-                $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
-                $a += 6;
-            } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
-                $ud = false;
-            }
+                    $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
+                    $a += 2;
+                } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
+                    $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
+                    $a += 3;
+                } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
+                    $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
+                    $a += 4;
+                } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
+                    $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
+                    $a += 5;
+                } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
+                    $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
+                    $a += 6;
+                } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
+                    $ud = false;
+                }
             $scill .= $prefix . $ud . ";";
         }
         return $scill;
