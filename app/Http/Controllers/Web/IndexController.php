@@ -308,7 +308,7 @@ class IndexController extends Controller
             }
             // 泛目录
             if ($this->prefix_path_status) {
-                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '.html';
+                $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)];
             }
             $html = preg_replace("/{随机列表链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
