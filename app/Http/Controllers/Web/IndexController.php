@@ -298,14 +298,10 @@ class IndexController extends Controller
     public function exchange_list_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机列表链接}');
+        $prefix_str = $_SERVER['HTTP_HOST'];
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
-            $prefix_str = $_SERVER['HTTP_HOST'];
-            // 泛前缀
-            if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.' . $this->host;
-            }
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)];
@@ -342,14 +338,10 @@ class IndexController extends Controller
     public function exchange_row_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机详情链接}');
+        $prefix_str = $_SERVER['HTTP_HOST'];
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
-            $prefix_str = $_SERVER['HTTP_HOST'];
-            // 泛前缀
-            if ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.' . $this->host;
-            }
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
