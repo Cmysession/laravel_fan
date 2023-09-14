@@ -24,3 +24,6 @@ Route::get('/{list}/{row}/{show}', [\App\Http\Controllers\Web\IndexController::c
 Route::get('/{list}/{row}/{show}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
 Route::get('/{list}/{row}/{show}/{id}', [\App\Http\Controllers\Web\IndexController::class,'row']);
 Route::get('/{list}/{row}/{show}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
+Route::get('/{list}/{row}/{show}/{o}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
+Route::get('/{list}/{row}/{show}/{o}/{i}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
+Route::get('/{list}/{row}/{show}/{o}/{i}/{e}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
