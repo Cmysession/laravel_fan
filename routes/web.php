@@ -12,18 +12,25 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/authorize', function () {
+    die("<h1 style='width: 100%;text-align: center; margin-top: 20%'>网站未授权!</h1>");
+});
+Route::group([
+    'middleware' => ['check.domain']
+], function () {
+    Route::get('/', [\App\Http\Controllers\Web\IndexController::class, 'index']);
+    Route::get('/tong-ji', [\App\Http\Controllers\Web\EchartsController::class, 'index']);
+    Route::get('/{sitemap}.xml', [\App\Http\Controllers\Web\IndexController::class, 'sitemap']);
+    Route::get('/{list}', [\App\Http\Controllers\Web\IndexController::class, 'list']);
+    Route::get('/{list}.html', [\App\Http\Controllers\Web\IndexController::class, 'list']);
+    Route::get('/{list}/{row}', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}/{id}', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}/{id}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}/{o}/{id}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}/{o}/{i}/{id}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+    Route::get('/{list}/{row}/{show}/{o}/{i}/{e}/{id}.html', [\App\Http\Controllers\Web\IndexController::class, 'row']);
+});
 
-Route::get('/', [\App\Http\Controllers\Web\IndexController::class,'index']);
-Route::get('/tong-ji', [\App\Http\Controllers\Web\EchartsController::class,'index']);
-Route::get('/{sitemap}.xml', [\App\Http\Controllers\Web\IndexController::class,'sitemap']);
-Route::get('/{list}', [\App\Http\Controllers\Web\IndexController::class,'list']);
-Route::get('/{list}.html', [\App\Http\Controllers\Web\IndexController::class,'list']);
-Route::get('/{list}/{row}', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}/{id}', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}/{o}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}/{o}/{i}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
-Route::get('/{list}/{row}/{show}/{o}/{i}/{e}/{id}.html', [\App\Http\Controllers\Web\IndexController::class,'row']);
