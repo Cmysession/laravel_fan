@@ -8,6 +8,8 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Monolog\Handler\RotatingFileHandler;
+use Overtrue\Pinyin\Pinyin;
+
 
 class IndexController extends Controller
 {
@@ -42,6 +44,11 @@ class IndexController extends Controller
 
     public $bot_spider = false;
 
+    public $pinyin_json = '';
+
+    public $get_key = [];
+    public $get_json_array = [];
+
 
     /**
      * "{固定关键词}"
@@ -60,7 +67,7 @@ class IndexController extends Controller
     public function __construct(Request $request)
     {
         $web_config = config('web') ?? [];
-        $this->host = $_SERVER['HTTP_HOST'];
+        $this->host = $_SERVER['SERVER_NAME'];
         $web_keys = array_keys($web_config);
         $host = '';
         for ($i = 0; $i < count($web_keys); $i++) {
@@ -84,18 +91,50 @@ class IndexController extends Controller
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
         $this->to_asc = $this->model['to_asc'] ?? 0;
-        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])) . '/' . $_SERVER['REQUEST_URI'];
+        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['SERVER_NAME'])) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
         if ($this->model['cache_path']) {
-            $html = $this->get_file_html($this->cache_path);
+            $html = $this->get_file($this->cache_path);
             // 缓存存在直接输出
             if ($html) {
                 die($html);
             }
         }
+
+        $this->get_key = $this->get_key_file();
+        $prefix_pinyin_len = 0;
+        if (!empty($this->model['prefix_pinyin_len'])) {
+            $prefix_pinyin_len = $this->model['prefix_pinyin_len'];
+        }
+        $this->pinyin_json = "public/template/$this->template/pinyin/" . str_replace(".", "_", $this->host) . "_{$prefix_pinyin_len}.json";
+        if (!Storage::disk('local')->exists($this->pinyin_json)) {
+            set_time_limit(0);
+            $pin_yin = new Pinyin();
+            $title_array = $this->get_key;
+            $str = '';
+            for ($i = 0; $i < count($title_array); $i++) {
+                $mb_str = $title_array[$i];
+                if ($prefix_pinyin_len >= 20) {
+                    $pinyin = $pin_yin->abbr($mb_str);
+                } else if ($prefix_pinyin_len !== 0) {
+                    $mb_str = mb_substr($title_array[$i], 0, $prefix_pinyin_len - 1, 'utf-8');
+                    $pinyin = $pin_yin->sentence($mb_str, '');
+                } else {
+                    $pinyin = $pin_yin->sentence($mb_str, '');
+                }
+                $pinyin = strtolower($pinyin);
+                $str .= "\"$title_array[$i]\":\"$pinyin\",";
+            }
+            $str = rtrim($str, ",");
+            $this->put_file($this->pinyin_json, "{" . $str . "}");
+            die("<h1 style='width:100%;text-align:center;margin-top:20%;'>拼英生成成功!</h1>");
+        }
+        $pin_yin_josn = $this->get_file($this->pinyin_json);
+        $this->get_json_array = json_decode($pin_yin_josn, true);
     }
+
 
     /**
      * 主页
@@ -111,7 +150,7 @@ class IndexController extends Controller
         $index_html = $this->exchange($index_html);
         if ($this->bot_spider) {
             if ($this->model['cache_path']) {
-                $this->put_file_html($this->cache_path, $index_html);
+                $this->put_file($this->cache_path, $index_html);
             }
         }
         die($index_html);
@@ -130,7 +169,7 @@ class IndexController extends Controller
         $index_html = $this->exchange($index_html);
         if ($this->bot_spider) {
             if ($this->model['cache_path']) {
-                $this->put_file_html($this->cache_path, $index_html);
+                $this->put_file($this->cache_path, $index_html);
             }
         }
         die($index_html);
@@ -150,7 +189,7 @@ class IndexController extends Controller
         $index_html = $this->exchange($index_html);
         if ($this->bot_spider) {
             if ($this->model['cache_path']) {
-                $this->put_file_html($this->cache_path, $index_html);
+                $this->put_file($this->cache_path, $index_html);
             }
         }
         die($index_html);
@@ -181,17 +220,24 @@ class IndexController extends Controller
     public function exchange_title_all(string $title_fixed, string $html, array $key_array): string
     {
 
-        // 出现了几次
-        $title_file = @file_get_contents(storage_path("app/public/template/$this->template/key/t.txt"));
-        if (!$title_file) {
-            die("<h2 style='text-align: center'> t.txt </h2>");
+        $str_replace = str_replace($_SERVER['SERVER_NAME'], '', $_SERVER['HTTP_HOST']);
+        $str_replace = strtolower($str_replace);
+        if ($str_replace && $str_replace != 'www.') {
+            $str_replace = rtrim($str_replace, ".");
+            $json_array = $this->get_json_array;
+            // 反转
+            $array_flip = array_flip($json_array);
+            // dump($array_flip);
+            if (!empty($array_flip[$str_replace])) {
+                $title = $array_flip[$str_replace];
+                return str_replace("{固定标题}", $title, $html);
+            }
+
         }
-        $title_array = explode("\n", trim(str_replace("\r", '', $title_file)));
+        $title_array = $this->get_key;
         $title_array_count = count($title_array);
-        if (!$title_array_count) {
-            die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
-        }
-        return str_replace("{固定标题}", $title_array[rand(0, $title_array_count - 1)], $html);
+        $title = $title_array[rand(0, $title_array_count - 1)];
+        return str_replace("{固定标题}", $title, $html);
     }
 
     /**
@@ -203,23 +249,15 @@ class IndexController extends Controller
     {
         // 出现了几次
         $title_str_count = substr_count($html, '{随机关键词}');
-        $title_file = @file_get_contents(storage_path("app/public/template/$this->template/key/k.txt"));
-        if (!$title_file) {
-            die("<h2 style='text-align: center'> k.txt </h2>");
-        }
-        $title_array = explode("\n", trim(str_replace("\r", '', $title_file)));
-        $title_array_count = count($title_array);
-        if (!$title_array_count) {
-            die("<h2 style='text-align: center'> t.txt 没数据 </h2>");
-        }
-        $title_fixed = $title_array[rand(0, $title_array_count - 1)];
+        $title_array = $this->get_key;
+        $title_fixed = $title_array[rand(0, count($title_array) - 1)];
         // 替换关键词
         $html = str_replace("{固定关键词}", $this->encode($title_fixed), $html);
         $html = $this->exchange_title_all($title_fixed, $html, $title_array);
         $html = $this->exchange_description_all($title_fixed, $html);
         // 有几个替换几个
         for ($i = 0; $i < $title_str_count; $i++) {
-            $html = preg_replace("/{随机关键词}/", $this->encode($title_array[rand(0, $title_array_count - 1)]), $html, 1);
+            $html = preg_replace("/{随机关键词}/", $this->encode($title_array[rand(0, count($title_array) - 1)]), $html, 1);
         }
         return str_replace("{固定关键词}", $this->encode($title_fixed), $html);
     }
@@ -348,8 +386,9 @@ class IndexController extends Controller
             // 泛目录
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
+            } elseif ($this->prefix_status) {
+                $prefix_str = $this->get_rand_str() . '.' . $_SERVER['SERVER_NAME'];
             }
-
             $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
         return $html;
@@ -458,15 +497,15 @@ class IndexController extends Controller
         return $html;
     }
 
-    public function put_file_html(string $path, string $html)
+    public function put_file(string $path, string $string)
     {
-        Storage::disk('local')->put($path, $html);
+        Storage::disk('local')->put($path, $string);
     }
 
     /**
      * @throws FileNotFoundException
      */
-    public function get_file_html(string $path): string
+    public function get_file(string $path): string
     {
         if (Storage::disk('local')->exists($path)) {
             return @Storage::disk('local')->get($path);
@@ -581,20 +620,31 @@ HTML;
     }
 
     /**
-     * 随机字符
+     * $随机字符
+     * @param string $string
+     * @return string
      */
     public function get_rand_str(): string
     {
-        //字符组合
-        $str = 'abcdefghijklmnopqrstuvwxyz';
-        $len = strlen($str) - 1;
-        $length = rand(3, 5);
-        $randstr = '';
-        for ($i = 0; $i < $length; $i++) {
-            $num = mt_rand(0, $len);
-            $randstr .= $str[$num];
+        return $this->get_json_array[array_rand($this->get_json_array)];
+    }
+
+
+    /**
+     * @return string[]|void
+     */
+    public function get_key_file()
+    {
+        $content_file = @file_get_contents(storage_path("app/public/template/$this->template/key/k.txt"));
+        if (!$content_file) {
+            die("<h2 style='text-align: center'>k.txt </h2>");
         }
-        return $randstr;
+        $title_array = explode("\n", trim(str_replace("\r", '', $content_file)));
+        $title_array_count = count($title_array);
+        if (!$title_array_count) {
+            die("<h2 style='text-align: center'> k.txt 没数据 </h2>");
+        }
+        return $title_array;
     }
 
     /**
@@ -617,23 +667,23 @@ HTML;
                 $a += 1;
             } else
                 if (ord($c[$a]) >= 192 && ord($c[$a]) <= 223) {
-                $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
-                $a += 2;
-            } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
-                $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
-                $a += 3;
-            } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
-                $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
-                $a += 4;
-            } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
-                $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
-                $a += 5;
-            } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
-                $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
-                $a += 6;
-            } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
-                $ud = false;
-            }
+                    $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
+                    $a += 2;
+                } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
+                    $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
+                    $a += 3;
+                } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
+                    $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
+                    $a += 4;
+                } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
+                    $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
+                    $a += 5;
+                } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
+                    $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
+                    $a += 6;
+                } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
+                    $ud = false;
+                }
             $scill .= $prefix . $ud . ";";
         }
         return $scill;
