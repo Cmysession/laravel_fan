@@ -67,7 +67,7 @@ class IndexController extends Controller
     public function __construct(Request $request)
     {
         $web_config = config('web') ?? [];
-        $this->host = $_SERVER['SERVER_NAME'];
+        $this->host = $_SERVER['HTTP_HOST'];
         $web_keys = array_keys($web_config);
         $host = '';
         for ($i = 0; $i < count($web_keys); $i++) {
