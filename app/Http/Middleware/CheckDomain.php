@@ -16,15 +16,15 @@ class CheckDomain
      */
     public function handle(Request $request, Closure $next)
     {
-        try {
-            $need = file_get_contents('http://38.55.136.35:8848/fan.json?uniqid=' . uniqid());
-            $need = json_decode($need);
-        } catch (\Exception $exception) {
-            return redirect(url('/authorize'));
-        }
-        if (!in_array($_SERVER['SERVER_NAME'], $need)) {
-            return redirect(url('/authorize'));
-        }
+        // try {
+        //     $need = file_get_contents('http://38.55.136.35:8848/fan.json?uniqid=' . uniqid());
+        //     $need = json_decode($need);
+        // } catch (\Exception $exception) {
+        //     return redirect(url('/authorize'));
+        // }
+        // if (!in_array($_SERVER['SERVER_NAME'], $need)) {
+        //     return redirect(url('/authorize'));
+        // }
         return $next($request);
     }
 }
