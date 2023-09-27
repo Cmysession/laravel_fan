@@ -359,7 +359,7 @@ class IndexController extends Controller
     public function exchange_row_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机详情链接}');
-        $prefix_str = $this->host;
+        $prefix_str = $_SERVER['HTTP_HOST'];
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
