@@ -111,9 +111,7 @@ class IndexController extends Controller
         }
         $this->pinyin_json = "public/template/$this->template/pinyin/" . str_replace(".", "_", $this->host) . "_{$prefix_pinyin_len}.json";
         if (!Storage::disk('local')->exists($this->pinyin_json)) {
-            exec("pwd", $array);
-            // exec("php artisan pyinyin {$this->host}", $array);
-            dump($array);
+            exec("cd ..&&php artisan pyinyin {$this->host}");
             die("<h1 style='width:100%;text-align:center;margin-top:20%;'>正在生成拼音!请等待3-5分钟!</h1>");
         }
         $pin_yin_josn = $this->get_file($this->pinyin_json);
