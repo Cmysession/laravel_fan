@@ -111,11 +111,10 @@ class IndexController extends Controller
         }
         $this->pinyin_json = "public/template/$this->template/pinyin/" . str_replace(".", "_", $this->host) . "_{$prefix_pinyin_len}.json";
         if (!Storage::disk('local')->exists($this->pinyin_json)) {
-          
-            $exitCode = Artisan::call('pyinyin', [
-                'domain'=>$this->host
-            ]);
-            die($exitCode);
+            exec("pwd", $array);
+            // exec("php artisan pyinyin {$this->host}", $array);
+            dump($array);
+            die("<h1 style='width:100%;text-align:center;margin-top:20%;'>正在生成拼音!请等待3-5分钟!</h1>");
         }
         $pin_yin_josn = $this->get_file($this->pinyin_json);
         $this->get_json_array = json_decode($pin_yin_josn, true);
@@ -218,7 +217,6 @@ class IndexController extends Controller
                 $title = $array_flip[$str_replace];
                 return str_replace("{固定标题}", $title, $html);
             }
-
         }
         $title_array = $this->get_key;
         $title_array_count = count($title_array);
@@ -653,23 +651,23 @@ HTML;
                 $a += 1;
             } else
                 if (ord($c[$a]) >= 192 && ord($c[$a]) <= 223) {
-                    $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
-                    $a += 2;
-                } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
-                    $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
-                    $a += 3;
-                } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
-                    $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
-                    $a += 4;
-                } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
-                    $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
-                    $a += 5;
-                } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
-                    $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
-                    $a += 6;
-                } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
-                    $ud = false;
-                }
+                $ud = (ord($c[$a]) - 192) * 64 + (ord($c[$a + 1]) - 128);
+                $a += 2;
+            } else if (ord($c[$a]) >= 224 && ord($c[$a]) <= 239) {
+                $ud = (ord($c[$a]) - 224) * 4096 + (ord($c[$a + 1]) - 128) * 64 + (ord($c[$a + 2]) - 128);
+                $a += 3;
+            } else if (ord($c[$a]) >= 240 && ord($c[$a]) <= 247) {
+                $ud = (ord($c[$a]) - 240) * 262144 + (ord($c[$a + 1]) - 128) * 4096 + (ord($c[$a + 2]) - 128) * 64 + (ord($c[$a + 3]) - 128);
+                $a += 4;
+            } else if (ord($c[$a]) >= 248 && ord($c[$a]) <= 251) {
+                $ud = (ord($c[$a]) - 248) * 16777216 + (ord($c[$a + 1]) - 128) * 262144 + (ord($c[$a + 2]) - 128) * 4096 + (ord($c[$a + 3]) - 128) * 64 + (ord($c[$a + 4]) - 128);
+                $a += 5;
+            } else if (ord($c[$a]) >= 252 && ord($c[$a]) <= 253) {
+                $ud = (ord($c[$a]) - 252) * 1073741824 + (ord($c[$a + 1]) - 128) * 16777216 + (ord($c[$a + 2]) - 128) * 262144 + (ord($c[$a + 3]) - 128) * 4096 + (ord($c[$a + 4]) - 128) * 64 + (ord($c[$a + 5]) - 128);
+                $a += 6;
+            } else if (ord($c[$a]) >= 254 && ord($c[$a]) <= 255) { //error
+                $ud = false;
+            }
             $scill .= $prefix . $ud . ";";
         }
         return $scill;
