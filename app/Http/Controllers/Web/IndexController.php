@@ -111,6 +111,7 @@ class IndexController extends Controller
         $this->pinyin_json = "public/template/$this->template/pinyin/" . str_replace(".", "_", $this->host) . "_{$prefix_pinyin_len}.json";
         if (!Storage::disk('local')->exists($this->pinyin_json)) {
             set_time_limit(0);
+            ini_set('max_execution_time', "300");
             $pin_yin = new Pinyin();
             $title_array = $this->get_key;
             $str = '';
