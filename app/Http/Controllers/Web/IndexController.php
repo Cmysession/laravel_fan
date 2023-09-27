@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\IndexModel;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Monolog\Handler\RotatingFileHandler;
 use Overtrue\Pinyin\Pinyin;
@@ -110,27 +111,11 @@ class IndexController extends Controller
         }
         $this->pinyin_json = "public/template/$this->template/pinyin/" . str_replace(".", "_", $this->host) . "_{$prefix_pinyin_len}.json";
         if (!Storage::disk('local')->exists($this->pinyin_json)) {
-            set_time_limit(0);
-            ini_set('max_execution_time', "300");
-            $pin_yin = new Pinyin();
-            $title_array = $this->get_key;
-            $str = '';
-            for ($i = 0; $i < count($title_array); $i++) {
-                $mb_str = $title_array[$i];
-                if ($prefix_pinyin_len >= 20) {
-                    $pinyin = $pin_yin->abbr($mb_str);
-                } else if ($prefix_pinyin_len !== 0) {
-                    $mb_str = mb_substr($title_array[$i], 0, $prefix_pinyin_len - 1, 'utf-8');
-                    $pinyin = $pin_yin->sentence($mb_str, '');
-                } else {
-                    $pinyin = $pin_yin->sentence($mb_str, '');
-                }
-                $pinyin = strtolower($pinyin);
-                $str .= "\"$title_array[$i]\":\"$pinyin\",";
-            }
-            $str = rtrim($str, ",");
-            $this->put_file($this->pinyin_json, "{" . $str . "}");
-            die("<h1 style='width:100%;text-align:center;margin-top:20%;'>拼英生成成功!</h1>");
+          
+            $exitCode = Artisan::call('pyinyin', [
+                'domain'=>$this->host
+            ]);
+            die($exitCode);
         }
         $pin_yin_josn = $this->get_file($this->pinyin_json);
         $this->get_json_array = json_decode($pin_yin_josn, true);
