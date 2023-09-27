@@ -361,7 +361,7 @@ class IndexController extends Controller
     public function exchange_row_link(string $html): string
     {
         $img_str_count = substr_count($html, '{随机详情链接}');
-        $prefix_str = $_SERVER['HTTP_HOST'];
+        $prefix_str = $this->host;
         $prefix_path = '';
         // 有几个替换几个
         for ($i = 0; $i < $img_str_count; $i++) {
@@ -369,7 +369,7 @@ class IndexController extends Controller
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
             } elseif ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.' . $_SERVER['SERVER_NAME'];
+                $prefix_str = $this->get_rand_str() . '.' . $this->host;
             }
             $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
