@@ -6,10 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\IndexModel;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Monolog\Handler\RotatingFileHandler;
-use Overtrue\Pinyin\Pinyin;
 
 
 class IndexController extends Controller
@@ -369,7 +367,7 @@ class IndexController extends Controller
             if ($this->prefix_path_status) {
                 $prefix_path = '/' . $this->request_url_array[rand(0, count($this->request_url_array) - 1)] . '/' . rand(0, 999999) . '.html';
             } elseif ($this->prefix_status) {
-                $prefix_str = $this->get_rand_str() . '.' . $prefix_str;
+                $prefix_str = $this->get_rand_str() . '.' . $this->host;
             }
             $html = preg_replace("/{随机详情链接}/", '//' . $prefix_str . $prefix_path, $html, 1);
         }
