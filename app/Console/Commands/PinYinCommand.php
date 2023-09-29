@@ -50,7 +50,8 @@ class PinYinCommand extends Command
     public function run_pinyin(array $model_list, $array_keys, int $index = 0)
     {
         if (empty($array_keys[$index])) {
-            die('无需执行');
+            dump('无需执行!');
+            die;
         }
         $domain = $array_keys[$index];
         $model = $model_list[$domain];
