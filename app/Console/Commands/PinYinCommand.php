@@ -13,7 +13,7 @@ class PinYinCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pyinyin {domain}';
+    protected $signature = 'pyinyin';
 
     /**
      * The console command description.
@@ -42,10 +42,23 @@ class PinYinCommand extends Command
      */
     public function handle()
     {
-        $domain = $this->argument('domain');
         $web_config = config('web') ?? [];
-        $model = $web_config[$domain];
-        $content_file = @file_get_contents(storage_path("app/public/template/{$model['template']}/key/k.txt"));
+        $model = $web_config;
+        $this->run_pinyin($model, array_keys($model));
+    }
+
+    public function run_pinyin(array $model_list, $array_keys, int $index = 0)
+    {
+        if (empty($array_keys[$index])) {
+            die('无需执行');
+        }
+        $domain = $array_keys[$index];
+        $model = $model_list[$domain];
+        $path = "public/template/{$model['template']}/pinyin/" . str_replace(".", "_", $domain) . "_{$model['prefix_pinyin_len']}.json";
+        if(Storage::disk('local')->exists($path)){
+            return $this->run_pinyin($model_list, $array_keys,  ++$index);
+        }
+        $content_file = file_get_contents(storage_path("app/public/template/{$model['template']}/key/k.txt"));
         $title_array = explode("\n", trim(str_replace("\r", '', $content_file)));
         $pin_yin = new Pinyin();
         $str = '';
@@ -62,9 +75,9 @@ class PinYinCommand extends Command
             $pinyin = strtolower($pinyin);
             $str .= "\"$title_array[$i]\":\"$pinyin\",";
         }
-            $str = rtrim($str, ",");
-            $path = "public/template/{$model['template']}/pinyin/" . str_replace(".", "_", $domain) . "_{$model['prefix_pinyin_len']}.json";
-            Storage::disk('local')->put($path, "{" . $str . "}");
-            die("<h1 style='width:100%;text-align:center;margin-top:20%;'>拼英生成成功!</h1>");
+        $str = rtrim($str, ",");
+        Storage::disk('local')->put($path, "{" . $str . "}");
+        dump('生成 拼音: ' . $domain . '成功!');
+        $this->run_pinyin($model_list, $array_keys,  ++$index);
     }
 }
