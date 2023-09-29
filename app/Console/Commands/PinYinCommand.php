@@ -13,7 +13,7 @@ class PinYinCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'pyinyin';
+    protected $signature = 'command:pyinyin';
 
     /**
      * The console command description.
