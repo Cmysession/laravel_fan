@@ -90,7 +90,7 @@ class IndexController extends Controller
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
         $this->to_asc = $this->model['to_asc'] ?? 0;
-        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['SERVER_NAME'])) . '/' . $_SERVER['REQUEST_URI'];
+        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $this->host)) . '/' . $_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
@@ -200,7 +200,7 @@ class IndexController extends Controller
     public function exchange_title_all(string $title_fixed, string $html, array $key_array): string
     {
 
-        $str_replace = str_replace($_SERVER['SERVER_NAME'], '', $_SERVER['HTTP_HOST']);
+        $str_replace = str_replace($this->host, '', $_SERVER['HTTP_HOST']);
         $str_replace = strtolower($str_replace);
         if ($str_replace && $str_replace != 'www.') {
             $str_replace = rtrim($str_replace, ".");
