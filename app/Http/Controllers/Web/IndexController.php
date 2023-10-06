@@ -90,7 +90,7 @@ class IndexController extends Controller
         $this->prefix_status = $this->model['prefix_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_status </h2>");
         $this->prefix_path_status = $this->model['prefix_path_status'] ?? die("<h2 style='text-align: center'> 网站未配置 prefix_path_status </h2>");
         $this->to_asc = $this->model['to_asc'] ?? 0;
-        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $this->host)) . '/' . $_SERVER['REQUEST_URI'];
+        $this->cache_path = "public/template/$this->template/" . $this->cache_path . '/' . str_replace(".", "_", str_replace(":", "_", $_SERVER['HTTP_HOST'])).$_SERVER['REQUEST_URI'];
         if (substr(strrchr($this->cache_path, '.'), 1) !== 'html') {
             $this->cache_path .= '.html';
         }
